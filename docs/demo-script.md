@@ -82,7 +82,7 @@ When finished: paste the Loom URL into the README, check all links signed out, t
 
 ## Quick checklist
 
-- [ ] Loom URL in README  
+- [x] Loom URL in README  
 - [ ] Live app opens signed out  
 - [ ] GitHub is public  
 - [ ] Narration matches on-screen scores  
