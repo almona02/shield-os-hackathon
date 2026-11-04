@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // shield-core lives one level above the Next app (../lib/shield-core).
+  // shield-core lives under ./lib/shield-core (same repo).
   experimental: {
     externalDir: true,
   },

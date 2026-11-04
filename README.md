@@ -64,13 +64,15 @@ Set `META_API_KEY` from [dev.meta.ai](https://dev.meta.ai) credits in `app/.env.
 - **Video:** *(add Loom link)*
 
 ```bash
-cd shield-hackathon
+git clone https://github.com/almona02/shield-os-hackathon
+cd shield-os-hackathon
 npm install
-cp app/.env.example app/.env.local   # fill Supabase + META_API_KEY
+cp .env.example .env.local   # fill Supabase + META_API_KEY from dev.meta.ai
 npm run dev
 ```
 
-Without Supabase env vars, the API falls back to an in-memory append-only store.
+- **GitHub:** https://github.com/almona02/shield-os-hackathon  
+- Without Supabase env vars, the API falls back to an in-memory append-only store.
 
 ## How it prevents corruption
 
@@ -91,8 +93,10 @@ Without Supabase env vars, the API falls back to an in-memory append-only store.
 ## Repo layout
 
 ```
-shield-hackathon/
-  app/                  Next.js 14 + Tailwind + RTL
+shield-os-hackathon/
+  app/                  Next.js App Router (UI + /api)
+  components/           Feed · Technician · Manager · Timeline · Map · Risk
+  lib/                  llama.ts · sam.ts · supabase-store.ts
   lib/shield-core/      immutable-log · approval-chain · anomaly-engine
   supabase/migrations/  001_shield_events.sql (trigger + RLS)
   docs/demo-script.md

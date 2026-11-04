@@ -1,12 +1,9 @@
 node_modules/
-app/node_modules/
-app/.next/
-**/.env
-**/.env.local
-**/.env*.local
+.next/
+out/
 *.log
+.env
+.env.local
+.env*.local
 .DS_Store
 .vercel
-
-.vercel
-.env*

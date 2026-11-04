@@ -27,7 +27,7 @@
         "./*"
       ],
       "@shield-core/*": [
-        "../lib/shield-core/*"
+        "./lib/shield-core/*"
       ]
     }
   },
@@ -35,7 +35,6 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "../lib/shield-core/*.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [
