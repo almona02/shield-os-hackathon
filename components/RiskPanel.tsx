@@ -25,6 +25,7 @@ export function RiskPanel({
   risk: RiskData | null;
 }) {
   const score = risk?.risk_score ?? 0;
+  const live = risk?.source === "meta_model_api";
   const tone =
     score >= 70
       ? "bg-red-50 border-red-200 text-red-900"
@@ -38,6 +39,33 @@ export function RiskPanel({
         <h2 className="text-sm font-semibold">{locale === "ar" ? "مراجعة مخاطر الموافقات" : "Approval risk review"}</h2>
         <span className="font-mono text-2xl font-bold">{risk ? score : "—"}</span>
       </div>
+
+      <div
+        className={`mb-3 inline-flex max-w-full flex-wrap items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold ${
+          live
+            ? "bg-emerald-700 text-white"
+            : "bg-stone-800 text-amber-100"
+        }`}
+      >
+        <span
+          className={`size-1.5 rounded-full ${live ? "bg-lime-300" : "bg-amber-300"}`}
+        />
+        <span className="break-all">
+          {risk?.source_label ??
+            (live
+              ? `Source: ${risk?.model ?? "muse-spark-1.3"} | Meta Model API (LIVE)`
+              : `Source: local_heuristic (fallback — ${risk?.fallback_reason ?? "unknown"})`)}
+        </span>
+      </div>
+
+      <p className="mb-2 rounded-lg bg-white/50 px-2 py-1.5 text-[11px] leading-snug">
+        {locale === "ar"
+          ? risk?.disclaimer_ar ??
+            "درجة المخاطر إشارة للمراجعة البشرية — ليست احتمال احتيال."
+          : risk?.disclaimer_en ??
+            "Model relevance score for human review — not a fraud probability or proof of collusion."}
+      </p>
+
       <p className="text-sm leading-snug">
         {risk
           ? locale === "ar"
@@ -55,7 +83,7 @@ export function RiskPanel({
               className="rounded-xl bg-white/60 px-3 py-2 text-xs"
             >
               <strong>
-                {f.pattern} · {f.severity}
+                {f.pattern} · {f.severity} · signal
               </strong>
               <div>
                 {locale === "ar" ? f.explanation_ar : f.explanation_en}

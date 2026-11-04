@@ -16,6 +16,8 @@ export function TechnicianPanel({
   const t = copy[locale];
   const [partName, setPartName] = useState<string>(DEMO_PARTS[0]);
   const [workshopId, setWorkshopId] = useState<string>(WORKSHOPS[0].id);
+  // Pexels industrial motor — verified LIVE SAM category match (~81).
+  // Swap to a person/office URL during recording to demo the honest mismatch path.
   const [photoName, setPhotoName] = useState(
     "",
   );
@@ -31,6 +33,9 @@ export function TechnicianPanel({
     reason_ar: string;
     source?: string;
     detections?: number;
+    detected_objects?: { label: string; confidence: number | null }[];
+    requested_category?: string;
+    relevance_note?: string;
   } | null>(null);
 
   const workshop = WORKSHOPS.find((w) => w.id === workshopId) ?? WORKSHOPS[0];

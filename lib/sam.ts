@@ -1,6 +1,11 @@
 /** SAM detects prompted object categories; it does not authenticate invoices or SKUs. */
 import { createHash } from "node:crypto";
 
+export interface DetectedObject {
+  label: string;
+  confidence: number | null;
+}
+
 export interface EvidenceVerdict {
   score: number | null; // Model detection confidence, never authenticity probability.
   label: "matched" | "no_match" | "unavailable" | "simulated_match" | "simulated_reject";
