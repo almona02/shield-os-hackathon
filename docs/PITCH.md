@@ -54,7 +54,7 @@ We are not claiming a finished fraud-prevention product. We are showing a carefu
 | Dashboard | https://shield-os-hackathon.vercel.app/shield |
 | GitHub | https://github.com/almona02/shield-os-hackathon |
 | Reality OS | https://github.com/almona02/almona-portfolio-forge |
-| Demo video | *(paste Loom URL)* |
+| Demo video | https://www.loom.com/share/f0ae3eb367d94de79727479913f87dd0 |
 
 **Stack:** Next.js 14, Supabase, Meta Model API (Muse Spark 1.3 + SAM 3.1), Tailwind with Arabic RTL support.
 

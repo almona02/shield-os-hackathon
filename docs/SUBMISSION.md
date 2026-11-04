@@ -6,9 +6,9 @@ Please use these fields when submitting. Keep the tone calm and accurate.
 
 1. **GitHub:** https://github.com/almona02/shield-os-hackathon  
 2. **Live demo:** https://shield-os-hackathon.vercel.app/  
-3. **Video (Loom):** ______________________________  
+3. **Video (Loom):** https://www.loom.com/share/f0ae3eb367d94de79727479913f87dd0  
 
-Record from [`demo-script.md`](./demo-script.md). Paste the Loom URL into the README before submit.
+Pitch/description: paste from [`PITCH.md`](./PITCH.md).
 
 ## Form copy
 
@@ -36,7 +36,7 @@ Record from [`demo-script.md`](./demo-script.md). Paste the Loom URL into the RE
 
 ## Checklist
 
-- [ ] Loom URL in README and in the Cerebral Valley form  
+- [x] Loom URL in README and ready for Cerebral Valley form  
 - [ ] All three links open while signed out  
 - [ ] Risk badge shows LIVE (or clearly labeled fallback)  
 - [ ] Narration matches what is on screen  

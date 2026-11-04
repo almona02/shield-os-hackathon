@@ -10,7 +10,7 @@ Meta Global AI Developer Hackathon 2026 · Cerebral Valley submission
 |---|---|
 | Live app | https://shield-os-hackathon.vercel.app |
 | Dashboard | https://shield-os-hackathon.vercel.app/shield |
-| Demo video | *(paste Loom URL before submit)* |
+| Demo video | https://www.loom.com/share/f0ae3eb367d94de79727479913f87dd0 |
 | Repository | https://github.com/almona02/shield-os-hackathon |
 | Parent project | https://github.com/almona02/almona-portfolio-forge |
 
