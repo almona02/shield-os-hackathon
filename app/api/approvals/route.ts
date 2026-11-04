@@ -5,11 +5,63 @@ import {
   approve,
   createRequest,
   reject,
+  type ApprovalRequest,
 } from "@shield-core/index";
 import { analyzeAndTrack, approvals, log } from "@/lib/shield";
 import { verifyEvidence } from "@/lib/sam";
 
+/**
+ * Serverless instances do not share the in-memory Map. Rebuild pending
+ * approvals from the durable ledger so Manager can still decide.
+ */
+async function hydratePendingFromLedger(): Promise<ApprovalRequest[]> {
+  const records = await log.getChain({ limit: 80 });
+  const decided = new Set<string>();
+  const pending: ApprovalRequest[] = [];
+
+  for (const r of records) {
+    const p = (r.payload ?? {}) as Record<string, unknown>;
+    const approvalId = typeof p.approval_id === "string" ? p.approval_id : null;
+    if (!approvalId) continue;
+
+    if (p.kind === "approval_decision") {
+      decided.add(approvalId);
+      continue;
+    }
+    if (
+      p.kind === "spare_part_request" &&
+      p.status === "awaiting_approval" &&
+      !decided.has(approvalId) &&
+      !approvals.has(approvalId)
+    ) {
+      const req: ApprovalRequest = {
+        id: approvalId,
+        entityId: r.entity_id,
+        title: String(p.part_name ?? r.entity_id),
+        createdBy: r.proof.verified_by,
+        createdAt: r.recorded_at,
+        status: "pending",
+        steps: [
+          {
+            stepId: "manager",
+            role: "manager",
+            label: "Manager",
+            status: "pending",
+            approver: null,
+            decidedAt: null,
+            note: null,
+          },
+        ],
+      };
+      approvals.set(req.id, req);
+      pending.push(req);
+    }
+  }
+  return pending;
+}
+
 export async function GET() {
+  await hydratePendingFromLedger();
   return NextResponse.json({
     requests: [...approvals.values()].reverse(),
   });
@@ -89,6 +141,7 @@ export async function POST(request: Request) {
     }
 
     if (body.action === "decide") {
+      await hydratePendingFromLedger();
       const current = approvals.get(body.id as string);
       if (!current) {
         return NextResponse.json(
