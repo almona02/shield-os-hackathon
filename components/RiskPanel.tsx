@@ -18,6 +18,10 @@ export interface RiskData {
   model?: string;
   endpoint?: string;
   fallback_reason?: string;
+  generated_at?: string;
+  events_analyzed?: number;
+  disclaimer_en?: string;
+  disclaimer_ar?: string;
 }
 
 export function RiskPanel({
@@ -62,6 +66,14 @@ export function RiskPanel({
         </span>
       </div>
 
+      <p className="mb-2 rounded-lg bg-white/50 px-2 py-1.5 text-[11px] leading-snug">
+        {locale === "ar"
+          ? risk?.disclaimer_ar ??
+            "درجة المخاطر إشارة للمراجعة البشرية — ليست احتمال احتيال."
+          : risk?.disclaimer_en ??
+            "Model relevance score for human review — not a fraud probability or proof of collusion."}
+      </p>
+
       <p className="text-sm leading-snug">
         {risk
           ? locale === "ar"
@@ -79,7 +91,7 @@ export function RiskPanel({
               className="rounded-xl bg-white/60 px-3 py-2 text-xs"
             >
               <strong>
-                {f.pattern} · {f.severity}
+                {f.pattern} · {f.severity} · signal
               </strong>
               <div>
                 {locale === "ar" ? f.explanation_ar : f.explanation_en}
@@ -89,7 +101,8 @@ export function RiskPanel({
         </ul>
       ) : null}
       <p className="mt-2 font-mono text-[10px] opacity-70">
-        model: {risk?.model ?? "—"} · endpoint: {risk?.endpoint ?? "—"}
+        model: {risk?.model ?? "—"} · generated_at: {risk?.generated_at ?? "—"} ·
+        events: {risk?.events_analyzed ?? "—"}
       </p>
     </section>
   );

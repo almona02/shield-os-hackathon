@@ -37,10 +37,13 @@ export async function POST(request: Request) {
         ? await verifyEvidence(photoName || photo, partName)
         : null;
 
-      if (evidence && evidence.label === "fake") {
+      // Block only the deterministic mock reject (fake-invoice filename).
+      // SAM mismatch is allowed through so the UI can show low relevance.
+      if (evidence && evidence.label === "mock_reject") {
         return NextResponse.json(
           {
-            error: "Evidence photo failed SAM check.",
+            error:
+              "Deterministic demo rule rejected this evidence filename (not a live SAM verdict).",
             evidence,
           },
           { status: 400 },

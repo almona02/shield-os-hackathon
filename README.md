@@ -1,4 +1,4 @@
-# SHIELD.OS — Immutable Audit Layer for Reality OS
+# SHIELD.OS — Tamper-Evident Approvals with Meta-Powered Risk Intelligence
 
 ### Meta Global AI Developer Hackathon 2026 Submission
 
@@ -16,25 +16,21 @@
 
 ### Context
 
-Almona Co. is an authorized YILMAZ dealer in Egypt, established 1991, with long-standing market access to aluminium and UPVC workshops.
+Almona Co. is an authorized YILMAZ dealer in Egypt (est. 1991). We built **Almona Vertical Reality OS** connecting machinery discovery, workshop planning, Fabricator Pro (BOM / cutting), and machine service history.
 
-Over the last year, we built **Almona Vertical Reality OS** — an open workspace that connects machinery discovery, workshop planning, Fabricator Pro (measurement, BOM, cutting optimization), and machine passport/service tickets.
-
-Fabricator Pro itself is technically complete (**1,539 commits**) but is still in pre-deployment / pilot phase. It has not yet been rolled out to production workshops. SHIELD.OS extracts its governance core so it can be validated independently.
+Fabricator Pro is engineering-complete (**1,539 commits**) but still in **pilot / pre-deployment** — not rolled out to production workshops. SHIELD.OS extracts the governance core so it can be validated independently.
 
 ### Problem
 
-In workshop operations, approvals for spare parts, service, and procurement are often logged in editable sheets. This allows after-the-fact edits and weakens trust. Traditional GRC systems (SAP GRC, Oracle Risk) are designed for enterprise reporting, not for lightweight, real-time prevention on the shop floor.
+Workshop spare-part and service approvals often live in editable sheets. After-the-fact edits weaken trust. Enterprise GRC tools are heavy for shop-floor prevention.
 
 ### Solution
 
-SHIELD.OS isolates three modules from Reality OS into a minimal, reusable layer:
+Three extracted modules:
 
-1. **immutable-log.ts** — from `realityos_core/event_ledger.py` + `chain_verifier.py`
-2. **approval-chain.ts** — from `ManufacturingAuthorityResolver.ts` + `vertical_registry.py`
-3. **anomaly-engine.ts** — from `fraud_detector.py` + `anomaly_rule.py`
-
-### Architecture
+1. **immutable-log.ts** — hash-chained append-only ledger  
+2. **approval-chain.ts** — ordered approvals, no self-approval, no override  
+3. **anomaly-engine.ts** — evidence-only risk signals (never silent blocks)
 
 ```
 Action → Log (immutable) → Meta Model Check → Approval
@@ -42,60 +38,51 @@ Action → Log (immutable) → Meta Model Check → Approval
 
 ### Meta AI Integration (one truth)
 
-| Tool | Usage | What judges see |
-|------|-------|-----------------|
-| **Muse Spark 1.3** via Meta Model API | `lib/llama.ts` → `/api/risk` scores last 50 events (EN/AR) | Badge: `Source: muse-spark-1.3 \| Meta Model API (LIVE)` — or explicit `local_heuristic (fallback — reason)` |
-| **SAM 3.1** | `lib/sam.ts` — https/data URLs proxied as base64 to Meta Responses API | Badge: `LIVE SAM 3.1 — N detections` |
-| **SAM mock** | Filename-only demo (`fake-invoice.png`) | Badge: `MOCK DEMO — filename rule for stable demo` |
-| **Muse Code** | Core extraction from Reality OS | Git history |
+| Tool | Behavior | Judge-facing badge |
+|------|----------|--------------------|
+| **Muse Spark 1.3** | `/api/risk` analyzes last 50 events (EN/AR) | `Source: muse-spark-1.3 \| Meta Model API (LIVE)` or labeled `local_heuristic (fallback — reason)` |
+| **SAM 3.1** | Category object localization on https/data URLs | `LIVE SAM 3.1 — object localization` + relevance % to requested part |
+| **Filename mock** | `fake-invoice.png` etc. | `MOCK DEMO — filename rule (not SAM)` |
 
-> Honest note: Meta’s public Llama API (`api.llama.com`) returned 401 for this project key (preview shut down). Risk scoring uses Meta’s current Model API chat model **`muse-spark-1.3`** on `https://api.meta.ai/v1/chat/completions` with the same Bearer key as SAM 3.1. Network tab shows `POST api.meta.ai` → 200 JSON.
+SAM scores **visual category relevance** (e.g. “electric motor”), not authenticity, freshness, or anti-forgery. Detecting a person does **not** satisfy a motor request (mismatch ~35%).
 
-SAM: mocked for filename demo, live for https URLs via base64 proxy — see Loom when available.
+Risk score is an **uncalibrated model signal for human review** — not a fraud probability.
 
-### Prove immutability (DB, not just UI)
+### Prove immutability (DB)
 
 ```sql
--- Supabase SQL editor
 UPDATE shield_events SET entity_id = 'HACKED' WHERE chain_position = 1;
+-- ERROR: shield_events is append-only: UPDATE is not allowed
 ```
 
-```text
-ERROR:  25001: shield_events is append-only: UPDATE is not allowed
-CONTEXT:  PL/pgSQL function shield_block_mutation() line 3 at RAISE
-```
+See [`docs/immutability-proof.md`](./docs/immutability-proof.md). Also `PUT /api/events` → 405.
 
-Full repro: [`docs/immutability-proof.md`](./docs/immutability-proof.md). Also `PUT /api/events` → 405 and `POST /api/tamper` → trigger message.
+### Prototype limitations (disclosed)
+
+- **Identity:** `createdBy` / `approver` come from the request body — no Supabase Auth binding yet  
+- **Approvals Map:** in-memory on the server; may reset on serverless cold start (ledger events remain durable in Supabase)  
+- **SAM:** object localization / category relevance — not forensic image authentication  
+- **Ledger verify:** single query (fine for demo scale; not claimed as paginated full-history at 1000+ rows)  
+- **Concurrency:** unique `chain_position` rejects races; no transactional retry loop yet  
 
 ### Demo
 
-1. `/` Technician + `fake-invoice.png` → **MOCK DEMO** reject (~18)
-2. Paste https image URL → **LIVE SAM 3.1** accept
-3. Manager Approve → chained event
-4. `/shield` → Chain verified · map · Risk badge **LIVE** Muse Spark
-5. Show Network: `POST /api/risk` and Meta upstream 200
+1. `fake-invoice.png` → **MOCK DEMO** reject (simulated rule)  
+2. https machinery image → **LIVE SAM 3.1** category relevance  
+3. Manager approve → chained event  
+4. `/shield` → Chain verified · map · Muse Spark **LIVE** + `generated_at`  
+5. Optional: Supabase UPDATE error screenshot  
+
+Script: [`docs/demo-script.md`](./docs/demo-script.md)
 
 ### How to Run
 
 ```bash
 git clone https://github.com/almona02/shield-os-hackathon
 cd shield-os-hackathon
-cp .env.example .env.local
-# META_API_KEY + NEXT_PUBLIC_SUPABASE_URL + SUPABASE_ANON_KEY
-npm install
-npm run dev
+cp .env.example .env.local   # META_API_KEY + Supabase
+npm install && npm run dev
 ```
-
-Production ledger: Supabase `001_shield_events.sql`.
-
-### What This Proves
-
-The governance layer of Reality OS can stand alone as a general integrity layer. SHIELD.OS is that validation — small, testable, deployable separately.
-
-### Next Steps
-
-- Pilot Fabricator Pro + SHIELD in 2–3 workshops in Giza
-- Harden SAM prompts per part SKU
 
 ### License
 

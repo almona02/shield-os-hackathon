@@ -16,8 +16,9 @@ export function TechnicianPanel({
   const t = copy[locale];
   const [partName, setPartName] = useState<string>(DEMO_PARTS[0]);
   const [workshopId, setWorkshopId] = useState<string>(WORKSHOPS[0].id);
+  // Prefer a machinery URL for category match; a person/office URL will show mismatch.
   const [photoName, setPhotoName] = useState(
-    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=960&q=70&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=960&q=70&auto=format&fit=crop",
   );
   const [geo, setGeo] = useState<{ lat: number; lon: number } | null>(
     WORKSHOPS[0],
@@ -31,6 +32,9 @@ export function TechnicianPanel({
     reason_ar: string;
     source?: string;
     detections?: number;
+    detected_objects?: { label: string; confidence: number | null }[];
+    requested_category?: string;
+    relevance_note?: string;
   } | null>(null);
 
   const workshop = WORKSHOPS.find((w) => w.id === workshopId) ?? WORKSHOPS[0];
@@ -146,8 +150,8 @@ export function TechnicianPanel({
           />
           <span className="font-normal text-[11px] text-shield-steel/70">
             {locale === "ar"
-              ? "اسم يحتوي fake للرفض السريع، أو رابط/data-URL لصورة حقيقية عبر SAM 3.1"
-              : "Use “fake” in the name for a quick reject, or paste an https/data image URL for live SAM 3.1"}
+              ? "fake-invoice.png = قاعدة تجريبية · رابط https = SAM 3.1 لملاءمة الفئة (ليس إثبات أصالة)"
+              : "fake-invoice.png = MOCK filename rule · https URL = live SAM 3.1 category relevance (not authenticity)"}
           </span>
         </label>
 
@@ -178,9 +182,9 @@ export function TechnicianPanel({
         {evidence && (
           <div
             className={`rounded-xl px-3 py-2 text-xs ${
-              evidence.label === "real"
+              evidence.label === "match" || evidence.label === "mock_pass"
                 ? "bg-green-50 text-green-800"
-                : evidence.label === "fake"
+                : evidence.label === "mock_reject" || evidence.label === "none"
                   ? "bg-red-50 text-red-800"
                   : "bg-amber-50 text-amber-900"
             }`}
@@ -188,18 +192,27 @@ export function TechnicianPanel({
             <div className="mb-1.5">
               {evidence.source === "sam_3_1" ? (
                 <span className="inline-block rounded-full bg-emerald-700 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                  LIVE SAM 3.1
-                  {typeof evidence.detections === "number"
-                    ? ` — ${evidence.detections} detections`
-                    : ""}
+                  LIVE SAM 3.1 — object localization
                 </span>
               ) : (
                 <span className="inline-block rounded-full bg-stone-800 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-200">
-                  MOCK DEMO — filename rule for stable demo
+                  MOCK DEMO — filename rule (not SAM)
                 </span>
               )}
             </div>
-            {evidence.label} · score {evidence.score}
+            {evidence.relevance_note ??
+              `${evidence.label} · relevance ${evidence.score}%`}
+            {evidence.detected_objects && evidence.detected_objects.length > 0 && (
+              <div className="mt-1 font-mono text-[10px] opacity-80">
+                objects:{" "}
+                {evidence.detected_objects
+                  .map(
+                    (o) =>
+                      `${o.label}${o.confidence != null ? ` ${o.confidence.toFixed(2)}` : ""}`,
+                  )
+                  .join(", ")}
+              </div>
+            )}
             <div className="mt-1">
               {locale === "ar" ? evidence.reason_ar : evidence.reason_en}
             </div>
