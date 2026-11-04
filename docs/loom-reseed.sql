@@ -1,0 +1,37 @@
+-- SHIELD.OS Loom curated reseed (10 events: genesis + 9 workshop)
+-- Truncate bypasses row DELETE trigger; CASCADE clears anomalies FK.
+
+TRUNCATE TABLE shield_anomalies, shield_events RESTART IDENTITY CASCADE;
+
+INSERT INTO shield_events (event_hash, prev_hash, chain_position, event_type, entity_id, vertical_id, proof, payload, recorded_at, created_at)
+VALUES ('0000000000000000000000000000000000000000000000000000000000000000', NULL, 1, 'VERIFICATION'::shield_event_type, 'shield_genesis', 'shield_core', '{"verified_by":"system","timestamp":"2025-02-20T00:00:00.000Z","location":null}'::jsonb, '{}'::jsonb, '2025-02-20T00:00:00.000Z'::timestamptz, '2025-02-20T00:00:00.000Z'::timestamptz);
+
+INSERT INTO shield_events (event_hash, prev_hash, chain_position, event_type, entity_id, vertical_id, proof, payload, recorded_at, created_at)
+VALUES ('e64f6f355b7cc6617e823a43465415c7d70d925da70a62b9883797a0a3ba517f', '0000000000000000000000000000000000000000000000000000000000000000', 2, 'INSPECTION'::shield_event_type, 'motor-ylm-45', 'spare_parts', '{"verified_by":"Mohamed Hassan","timestamp":"2026-11-03T09:15:00.000Z","location":{"lat":30.0131,"lon":31.2089},"photo_hashes":["ph_motor_seed1"]}'::jsonb, '{"kind":"spare_part_request","part_name":"Motor YLM-45","workshop":"Giza - Almona","status":"awaiting_approval","evidence_label":"match","evidence_score":91}'::jsonb, '2026-11-03T09:15:00.000Z'::timestamptz, '2026-11-03T09:15:00.000Z'::timestamptz);
+
+INSERT INTO shield_events (event_hash, prev_hash, chain_position, event_type, entity_id, vertical_id, proof, payload, recorded_at, created_at)
+VALUES ('4b95f19ee71f6362227ea8de2071a3e99f88e136d87d41b75d28d3838fa9eba1', 'e64f6f355b7cc6617e823a43465415c7d70d925da70a62b9883797a0a3ba517f', 3, 'VERIFICATION'::shield_event_type, 'motor-ylm-45', 'spare_parts', '{"verified_by":"Ahmed.Manager","timestamp":"2026-11-03T09:22:00.000Z","location":{"lat":30.0131,"lon":31.2089}}'::jsonb, '{"kind":"approval_decision","decision":"approved","part_name":"Motor YLM-45","workshop":"Giza - Almona","step_id":"manager","role":"manager"}'::jsonb, '2026-11-03T09:22:00.000Z'::timestamptz, '2026-11-03T09:22:00.000Z'::timestamptz);
+
+INSERT INTO shield_events (event_hash, prev_hash, chain_position, event_type, entity_id, vertical_id, proof, payload, recorded_at, created_at)
+VALUES ('4493fae2798aeb2719c34335210649dad3cd8d4a280d0f40f6736ca8e7d28591', '4b95f19ee71f6362227ea8de2071a3e99f88e136d87d41b75d28d3838fa9eba1', 4, 'INSPECTION'::shield_event_type, 'bearing-6205', 'spare_parts', '{"verified_by":"Mohamed Hassan","timestamp":"2026-11-03T14:40:00.000Z","location":{"lat":29.9971,"lon":31.1637},"photo_hashes":["ph_bearing_seed"]}'::jsonb, '{"kind":"spare_part_request","part_name":"Bearing 6205","workshop":"Giza Field Unit","status":"awaiting_approval","evidence_label":"match","evidence_score":78}'::jsonb, '2026-11-03T14:40:00.000Z'::timestamptz, '2026-11-03T14:40:00.000Z'::timestamptz);
+
+INSERT INTO shield_events (event_hash, prev_hash, chain_position, event_type, entity_id, vertical_id, proof, payload, recorded_at, created_at)
+VALUES ('c2cfd509c13329cc71ff20d2ca46acc894455858afff24a90c4e78d5a5fd1009', '4493fae2798aeb2719c34335210649dad3cd8d4a280d0f40f6736ca8e7d28591', 5, 'VERIFICATION'::shield_event_type, 'bearing-6205', 'spare_parts', '{"verified_by":"Ahmed.Manager","timestamp":"2026-11-04T00:14:51.000Z","location":{"lat":30.0131,"lon":31.2089}}'::jsonb, '{"kind":"approval_decision","decision":"approved","part_name":"Bearing 6205","workshop":"Giza Field Unit","step_id":"manager","role":"manager"}'::jsonb, '2026-11-04T00:14:51.000Z'::timestamptz, '2026-11-04T00:14:51.000Z'::timestamptz);
+
+INSERT INTO shield_events (event_hash, prev_hash, chain_position, event_type, entity_id, vertical_id, proof, payload, recorded_at, created_at)
+VALUES ('59651f8f13f2c1d4f90d1c85a4d117a9189a1ac4e840a81b9ec63603cf718c61', 'c2cfd509c13329cc71ff20d2ca46acc894455858afff24a90c4e78d5a5fd1009', 6, 'INSPECTION'::shield_event_type, 'spindle-seal-kit', 'spare_parts', '{"verified_by":"Mohamed Hassan","timestamp":"2026-11-04T00:30:00.000Z","location":{"lat":30.0131,"lon":31.2089},"photo_hashes":["ph_seal_seed"]}'::jsonb, '{"kind":"spare_part_request","part_name":"Spindle Seal Kit","workshop":"Giza - Almona","status":"awaiting_approval","evidence_label":"match","evidence_score":84}'::jsonb, '2026-11-04T00:30:00.000Z'::timestamptz, '2026-11-04T00:30:00.000Z'::timestamptz);
+
+INSERT INTO shield_events (event_hash, prev_hash, chain_position, event_type, entity_id, vertical_id, proof, payload, recorded_at, created_at)
+VALUES ('1ae4549ab013e3f690181dac3134a95eea0bbd006b5c8079a0eeec1c4259b29f', '59651f8f13f2c1d4f90d1c85a4d117a9189a1ac4e840a81b9ec63603cf718c61', 7, 'VERIFICATION'::shield_event_type, 'spindle-seal-kit', 'spare_parts', '{"verified_by":"Ahmed.Manager","timestamp":"2026-11-04T00:38:38.000Z","location":{"lat":30.0131,"lon":31.2089}}'::jsonb, '{"kind":"approval_decision","decision":"approved","part_name":"Spindle Seal Kit","workshop":"Giza - Almona","step_id":"manager","role":"manager"}'::jsonb, '2026-11-04T00:38:38.000Z'::timestamptz, '2026-11-04T00:38:38.000Z'::timestamptz);
+
+INSERT INTO shield_events (event_hash, prev_hash, chain_position, event_type, entity_id, vertical_id, proof, payload, recorded_at, created_at)
+VALUES ('862bcd28e6436975fd77d1f371214150df63c8a2dc00db67d65fa05d81f5f658', '1ae4549ab013e3f690181dac3134a95eea0bbd006b5c8079a0eeec1c4259b29f', 8, 'INSPECTION'::shield_event_type, 'motor-ylm-45', 'spare_parts', '{"verified_by":"Mohamed Hassan","timestamp":"2026-11-04T00:55:00.000Z","location":{"lat":29.9971,"lon":31.1637},"photo_hashes":["ph_motor_seed2"]}'::jsonb, '{"kind":"spare_part_request","part_name":"Motor YLM-45","workshop":"Giza Field Unit","status":"awaiting_approval","evidence_label":"match","evidence_score":88}'::jsonb, '2026-11-04T00:55:00.000Z'::timestamptz, '2026-11-04T00:55:00.000Z'::timestamptz);
+
+INSERT INTO shield_events (event_hash, prev_hash, chain_position, event_type, entity_id, vertical_id, proof, payload, recorded_at, created_at)
+VALUES ('3cda103e7822cce83918506df7dd1b707d8bae43a99b12206d9a8825055f54ec', '862bcd28e6436975fd77d1f371214150df63c8a2dc00db67d65fa05d81f5f658', 9, 'VERIFICATION'::shield_event_type, 'motor-ylm-45', 'spare_parts', '{"verified_by":"Ahmed.Manager","timestamp":"2026-11-04T01:11:17.000Z","location":{"lat":30.0131,"lon":31.2089}}'::jsonb, '{"kind":"approval_decision","decision":"approved","part_name":"Motor YLM-45","workshop":"Giza Field Unit","step_id":"manager","role":"manager"}'::jsonb, '2026-11-04T01:11:17.000Z'::timestamptz, '2026-11-04T01:11:17.000Z'::timestamptz);
+
+INSERT INTO shield_events (event_hash, prev_hash, chain_position, event_type, entity_id, vertical_id, proof, payload, recorded_at, created_at)
+VALUES ('d04ef9d94140bf9f415ced97116e2097198129f544e631fdcdc9f9a2783276f1', '3cda103e7822cce83918506df7dd1b707d8bae43a99b12206d9a8825055f54ec', 10, 'INSPECTION'::shield_event_type, 'motor-ylm-45', 'spare_parts', '{"verified_by":"Mohamed Hassan","timestamp":"2026-11-04T08:00:00.000Z","location":{"lat":30.0131,"lon":31.2089},"photo_hashes":["ph_motor_seed3"]}'::jsonb, '{"kind":"spare_part_request","part_name":"Motor YLM-45 GENESIS","workshop":"Giza - Almona","status":"awaiting_approval","evidence_label":"match","evidence_score":91}'::jsonb, '2026-11-04T08:00:00.000Z'::timestamptz, '2026-11-04T08:00:00.000Z'::timestamptz);
+
+SELECT chain_position, event_type, entity_id, proof->>'verified_by' AS who, recorded_at
+FROM shield_events ORDER BY chain_position;

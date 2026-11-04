@@ -40,22 +40,27 @@ Narrow mobile-width window.
 > Live SAM 3.1 localizes objects and scores category relevance to the requested motor — not forensic authenticity.  
 > Every action is hash-chained. Try to edit — the API returns 405. Postgres blocks UPDATE and DELETE.
 
-### 45–90s — Dashboard + Muse Spark signals
+### 45–70s — Dashboard + Muse Spark signals
 
 **Driver**
 1. Open `/shield`
-2. **Chain verified** · map pins
+2. **Chain verified** · ~11 events after your new approve (10 curated + live) · map pins
 3. Risk badge: **Source: muse-spark-1.3 | Meta Model API (LIVE)**
 4. Point at disclaimer: score is a **signal for human review**, not fraud probability
-5. Optional Network: `POST /api/risk` → `"source":"meta_model_api"`, `generated_at` fresh
-6. Optional cutaway: Supabase SQL `UPDATE … HACKED` error screenshot
+5. Optional cutaway: Supabase SQL `UPDATE … HACKED` error screenshot
 
 **You say**
 > Muse Spark flags OFF_HOURS and SAME_APPROVER as signals for human review.  
-> Ninety-four is an uncalibrated model score — not ninety-four percent certainty of fraud.  
-> SHIELD.OS: who, where, when, what, approved by — tamper-evident. Extracted from our Reality OS governance core.
+> The score is an uncalibrated model signal — not percent certainty of fraud.
 
-End Loom. Paste URL into README.
+### 70–90s — Why Almona + CTA
+
+**You say**
+> Extracted from Almona Reality OS — YILMAZ dealer since 1991, Fabricator Pro in pilot, now a production Supabase ledger.  
+> SHIELD.OS: who, where, when, what, approved by — tamper-evident.
+
+End Loom. Paste URL into README.  
+Curated ledger SQL: [`docs/loom-reseed.sql`](./loom-reseed.sql) (already applied).
 
 ---
 
