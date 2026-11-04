@@ -332,9 +332,25 @@ export async function verifyEvidence(
   photo: string,
   expectedPart?: string,
 ): Promise<EvidenceVerdict> {
+  // Live path for https/data URLs — never fall through to filename mock_pass.
   if (isImagePayload(photo)) {
     const live = await verifyEvidenceWithSam(photo, expectedPart);
     if (live) return live;
+    const { category } = categoryPrompts(expectedPart);
+    return {
+      score: 0,
+      label: "none",
+      reason_en:
+        "Could not run live SAM 3.1 on this image URL (fetch/API unavailable). Not a mock filename verdict.",
+      reason_ar:
+        "تعذر تشغيل SAM 3.1 الحي على رابط الصورة. هذه ليست نتيجة قاعدة اسم الملف.",
+      photo_hash: hashString(photo.slice(0, 256) + (expectedPart ?? "")),
+      source: "sam_3_1",
+      detections: 0,
+      detected_objects: [],
+      requested_category: category,
+      relevance_note: `Relevance to “${expectedPart ?? category}”: unavailable`,
+    };
   }
   return mockVerifyEvidence(photo, expectedPart);
 }

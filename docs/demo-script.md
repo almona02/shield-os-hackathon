@@ -29,10 +29,10 @@ Narrow mobile-width window.
 
 **Driver**
 1. Part = **Motor YLM-45 GENESIS**, Workshop = **Giza - Almona**
-2. Evidence = machinery https URL (prefilled) → Submit
-3. Hold badge: **LIVE SAM 3.1 — object localization** + objects list + relevance %  
-   - If category matches → “match”  
-   - If objects are person/document only → **mismatch ~35%** (honest path — still fine to show)
+2. Evidence = prefilled Pexels industrial motor URL → Submit  
+   - Expect **LIVE SAM 3.1** · match · relevance ~81% · objects: electric motor  
+   - Backup mismatch demo: paste a person/office URL → mismatch ~35%  
+3. Hold badge: **LIVE SAM 3.1 — object localization** + objects + relevance %
 4. Manager → Approve
 5. Terminal: `curl -X PUT https://shield-os-hackathon.vercel.app/api/events` → **405**
 

@@ -16,9 +16,10 @@ export function TechnicianPanel({
   const t = copy[locale];
   const [partName, setPartName] = useState<string>(DEMO_PARTS[0]);
   const [workshopId, setWorkshopId] = useState<string>(WORKSHOPS[0].id);
-  // Prefer a machinery URL for category match; a person/office URL will show mismatch.
+  // Pexels industrial motor — verified LIVE SAM category match (~81).
+  // Swap to a person/office URL during recording to demo the honest mismatch path.
   const [photoName, setPhotoName] = useState(
-    "https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=960&q=70&auto=format&fit=crop",
+    "https://images.pexels.com/photos/34194564/pexels-photo-34194564.jpeg?auto=compress&cs=tinysrgb&w=960",
   );
   const [geo, setGeo] = useState<{ lat: number; lon: number } | null>(
     WORKSHOPS[0],
