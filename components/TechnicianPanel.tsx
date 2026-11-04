@@ -16,7 +16,9 @@ export function TechnicianPanel({
   const t = copy[locale];
   const [partName, setPartName] = useState<string>(DEMO_PARTS[0]);
   const [workshopId, setWorkshopId] = useState<string>(WORKSHOPS[0].id);
-  const [photoName, setPhotoName] = useState("motor-ylm-45-workshop.jpg");
+  const [photoName, setPhotoName] = useState(
+    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=960&q=70&auto=format&fit=crop",
+  );
   const [geo, setGeo] = useState<{ lat: number; lon: number } | null>(
     WORKSHOPS[0],
   );

@@ -109,11 +109,19 @@ export default function HomePage() {
         <div className="mt-3 flex items-center gap-2 text-xs text-shield-steel">
           <span
             className={`inline-block size-2 rounded-full ${
-              verified ? "bg-shield-mint" : "bg-shield-risk"
+              verified === null
+                ? "bg-stone-400"
+                : verified
+                  ? "bg-shield-mint"
+                  : "bg-shield-risk"
             }`}
           />
-          {verified ? t.chainOk : t.chainBad} · {events.length} events · as{" "}
-          <strong>{actorName}</strong>
+          {verified === null
+            ? t.chainChecking
+            : verified
+              ? t.chainOk
+              : t.chainBad}{" "}
+          · {events.length} events · as <strong>{actorName}</strong>
         </div>
       </header>
 

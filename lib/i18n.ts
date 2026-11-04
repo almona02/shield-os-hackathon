@@ -24,6 +24,7 @@ export const copy = {
     map: "Approval map",
     chainOk: "Chain verified",
     chainBad: "Chain broken",
+    chainChecking: "Checking chain…",
     switchRole: "Role",
     lang: "العربية",
   },
@@ -50,18 +51,21 @@ export const copy = {
     map: "خريطة الموافقات",
     chainOk: "السلسلة سليمة",
     chainBad: "السلسلة مكسورة",
+    chainChecking: "جارٍ التحقق من السلسلة…",
     switchRole: "الدور",
     lang: "English",
   },
 } as const;
 
 export const WORKSHOPS = [
+  { id: "giza-almona", name_en: "Giza - Almona", name_ar: "الجيزة - المنى", lat: 30.0131, lon: 31.2089 },
   { id: "giza", name_en: "Giza Workshop", name_ar: "ورشة الجيزة", lat: 30.0131, lon: 31.2089 },
   { id: "10th", name_en: "10th of Ramadan", name_ar: "العاشر من رمضان", lat: 30.303, lon: 31.741 },
   { id: "alex", name_en: "Alexandria Plant", name_ar: "مصنع الإسكندرية", lat: 31.2001, lon: 29.9187 },
 ] as const;
 
 export const DEMO_PARTS = [
+  "Motor YLM-45 GENESIS",
   "Motor YLM-45",
   "Bearing SET-220",
   "Spindle YILMAZ-X2",

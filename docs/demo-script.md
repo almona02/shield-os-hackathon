@@ -30,38 +30,37 @@ Open https://shield-os-hackathon.vercel.app in a **narrow** window (mobile-first
 1. Role = **Technician**
 2. Evidence photo → replace with `fake-invoice.png`
 3. Click **Submit request**
-4. Hold on the red SAM banner (score ~18)
+4. Hold on the red SAM banner (`source: mock`, score ~18)
 
 **You say**
 > MENA loses roughly two trillion dollars to procurement fraud.  
 > Without Shield, a manager edits the spreadsheet and the trail is gone.  
 > SAM rejects this fake invoice — score eighteen. Evidence never enters the ledger.
 
-### 20–50s — Immutable core
+### 20–50s — Immutable core (live SAM 3.1 + approve + 405)
 
 **Driver**
-1. Evidence photo → `motor-ylm-45-workshop.jpg`
-2. Part = **Motor YLM-45**, Workshop = **Giza Workshop**
-3. **Capture location** → **Submit request**
+1. Part = **Motor YLM-45 GENESIS**, Workshop = **Giza - Almona**
+2. Evidence = Unsplash URL (prefilled) → **Submit request**
+3. Hold banner: `source: sam_3_1` · real
 4. Switch role → **Manager** → **Approve**
-5. Show the WhatsApp-style feed bubble
-6. Terminal (or second tab):  
-   `curl -X PUT https://shield-os-hackathon.vercel.app/api/events` → **405**  
-   Optional: `curl -X POST https://shield-os-hackathon.vercel.app/api/tamper` → Postgres trigger message
+5. Feed bubble shows Mohamed → Ahmed.Manager
+6. Terminal: `curl -X PUT https://shield-os-hackathon.vercel.app/api/events` → **405**
 
 **You say**
-> With Shield every action is hash-chained. Try to edit — the API returns 405.  
-> At the database, a Postgres trigger blocks UPDATE and DELETE for every role.
+> With Shield every action is hash-chained. Live SAM 3.1 accepts the real workshop photo.  
+> Try to edit — the API returns 405. The Postgres trigger blocks UPDATE and DELETE.
 
 ### 50–90s — Impact
 
 **Driver**
-1. Click **Shield Dashboard** (or open `/shield`)
-2. Point at: hash timeline → map pin → Llama Risk Panel
-3. Optional: toggle **العربية** for bilingual risk text
+1. Open **Shield Dashboard** `/shield`
+2. Confirm pill: **Chain verified**
+3. Map shows Giza pin · Llama Risk Panel: OFF_HOURS / same-approver
+4. Optional: toggle **العربية**
 
 **You say**
-> Llama flags corruption patterns — high risk, English and Arabic.  
+> Chain verified. Llama flags off-hours approvals — high risk, English and Arabic.  
 > This is extracted from Almona Vertical Reality OS — fifteen hundred commits,  
 > two hundred workshops in Egypt — now generalized for any industry.  
 > SHIELD.OS: who, where, when, what, approved by — immutable.

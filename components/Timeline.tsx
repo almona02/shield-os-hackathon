@@ -24,12 +24,18 @@ export function Timeline({
         <h2 className="text-sm font-semibold text-shield-ink">{t.timeline}</h2>
         <span
           className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-            verified
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
+            verified === null
+              ? "bg-stone-100 text-stone-600"
+              : verified
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
           }`}
         >
-          {verified ? t.chainOk : t.chainBad}
+          {verified === null
+            ? t.chainChecking
+            : verified
+              ? t.chainOk
+              : t.chainBad}
         </span>
       </div>
       <ol className="relative space-y-0 border-s-2 border-shield-forest/20 ps-4">
