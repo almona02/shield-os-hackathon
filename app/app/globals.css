@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Segoe UI", system-ui, sans-serif;
+  --font-arabic: "Tahoma", "Segoe UI", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply min-h-screen bg-shield-sand text-shield-ink antialiased;
+  background-image:
+    radial-gradient(ellipse at top, rgba(22, 163, 74, 0.08), transparent 55%),
+    linear-gradient(180deg, #f7f4ee 0%, #ebe6db 100%);
+}
+
+html[dir="rtl"] body {
+  font-family: var(--font-arabic);
+}
+
+html[dir="ltr"] body {
+  font-family: var(--font-display);
+}

@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "name": "shield-hackathon",
+  "version": "0.1.0",
+  "workspaces": [
+    "app",
+    "lib/shield-core"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace app",
+    "build": "npm run build --workspace app"
+  }
+}
