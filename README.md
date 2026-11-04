@@ -50,11 +50,12 @@ flowchart TD
 | Tool | Usage |
 |---|---|
 | **Llama 4 Maverick** | `/lib/llama.ts` — risk_score 0–100 + EN/AR explanation (same approver, 2 AM approvals, geo mismatch, fast approvals) |
-| **SAM 3.1** | `/lib/sam.ts` — evidence photo real/fake score (**mock**; architecture ready for Meta SAM API) |
+| **SAM 3.1** | `/lib/sam.ts` — Meta `sam-3.1` via Responses API; filename mock fallback for Loom demos |
 | **Muse Image** | Fake vs real invoice comparison for demo video |
 | **Muse Code** | Built with Cursor / Muse Code |
 
-Set `META_API_KEY` from [dev.meta.ai](https://dev.meta.ai) credits in `app/.env.local`.
+Set `META_API_KEY` from [dev.meta.ai](https://dev.meta.ai) in `.env.local` (and Vercel).  
+**Ledger:** production uses Supabase `001_shield_events.sql` (`backend: supabase`). Memory is fallback only.
 
 ## Demo
 
@@ -77,7 +78,7 @@ npm run dev
 ## How it prevents corruption
 
 1. Technician requests **Motor YLM-45** + photo + geo → sealed as `INSPECTION`.
-2. Filename `fake-invoice.png` → SAM mock **rejects** (score ~18).
+2. Filename `fake-invoice.png` → SAM path **rejects** (score ~18). Real image URLs hit Meta `sam-3.1`.
 3. Manager approve/reject → `VERIFICATION` row; every decision is on-chain.
 4. Attacker tries `PUT /api/events` → **405**. DB `UPDATE` → trigger blocks.
 5. `/shield` Llama panel: *"2 AM approvals from same manager — High Risk"*.

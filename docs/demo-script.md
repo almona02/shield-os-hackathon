@@ -1,38 +1,84 @@
-# SHIELD.OS — 90s Demo Video Script (25% of score)
+# SHIELD.OS — 90s Demo Video (25% of score)
 
-Record on Loom. Mobile-first UI on screen. Speak clearly.
+**Live URL:** https://shield-os-hackathon.vercel.app  
+**Dashboard:** https://shield-os-hackathon.vercel.app/shield
 
-## 0–20s — The problem
+## Who should do what (most accurate)
 
-Show Technician role. Type photo name `fake-invoice.png`. Hit Submit.
+| Role | Person / tool | Job |
+|---|---|---|
+| **Driver** | Cursor agent (me) or a teammate | Clicks the UI + runs the curl. Never misses a beat. |
+| **Narrator** | You | Read the lines below. Face optional. |
+| **Recorder** | Loom (or OBS) | Capture browser window only, 1080p, mic on. |
 
-> “MENA loses roughly two trillion dollars to procurement fraud.
-> Without Shield, a manager edits the spreadsheet and the trail is gone.
-> SAM rejects this fake invoice — score eighteen. Evidence never enters the ledger.”
+You do **not** need to click. Start Loom → say “go” → I drive → you speak.
 
-## 20–50s — Immutable core
+Alternatives if you want zero involvement:
+- Teammate records while you send this doc
+- Hire a Loom editor on Upwork with this exact click list ($20–40)
+- I can rehearse the flow in-browser anytime; you only hit Record
 
-1. Submit real request: **Motor YLM-45** @ Giza Workshop with geo.
-2. Switch to Manager → Approve.
-3. Open DevTools / terminal: `curl -X PUT /api/events` → **405**.
+---
 
-> “With Shield every action is hash-chained. Try to edit — the API returns 405.
-> At the database, a Postgres trigger blocks UPDATE and DELETE for every role.”
+## Click-by-click teleprompter
 
-## 50–90s — Impact
+Open https://shield-os-hackathon.vercel.app in a **narrow** window (mobile-first).
 
-Open `/shield`:
+### 0–20s — Problem (SAM rejects fake)
 
-- Timeline with hashes
-- Map pins at Giza
-- Llama Risk Panel (seed or narrate a 2 AM pattern)
+**Driver**
+1. Role = **Technician**
+2. Evidence photo → replace with `fake-invoice.png`
+3. Click **Submit request**
+4. Hold on the red SAM banner (score ~18)
 
-> “Llama flags off-hours approvals — high risk, bilingual EN/AR.
-> This is extracted from Almona Vertical Reality OS — fifteen hundred commits,
-> two hundred workshops in Egypt — now generalized for any industry.
-> SHIELD.OS: who, where, when, what, approved by — immutable.”
+**You say**
+> MENA loses roughly two trillion dollars to procurement fraud.  
+> Without Shield, a manager edits the spreadsheet and the trail is gone.  
+> SAM rejects this fake invoice — score eighteen. Evidence never enters the ledger.
 
-## Cutaways (optional)
+### 20–50s — Immutable core
 
-- `supabase/migrations/001_shield_events.sql` — trigger snippet
-- `lib/shield-core/immutable-log.ts` — `recordEvent` only, no update/delete
+**Driver**
+1. Evidence photo → `motor-ylm-45-workshop.jpg`
+2. Part = **Motor YLM-45**, Workshop = **Giza Workshop**
+3. **Capture location** → **Submit request**
+4. Switch role → **Manager** → **Approve**
+5. Show the WhatsApp-style feed bubble
+6. Terminal (or second tab):  
+   `curl -X PUT https://shield-os-hackathon.vercel.app/api/events` → **405**  
+   Optional: `curl -X POST https://shield-os-hackathon.vercel.app/api/tamper` → Postgres trigger message
+
+**You say**
+> With Shield every action is hash-chained. Try to edit — the API returns 405.  
+> At the database, a Postgres trigger blocks UPDATE and DELETE for every role.
+
+### 50–90s — Impact
+
+**Driver**
+1. Click **Shield Dashboard** (or open `/shield`)
+2. Point at: hash timeline → map pin → Llama Risk Panel
+3. Optional: toggle **العربية** for bilingual risk text
+
+**You say**
+> Llama flags corruption patterns — high risk, English and Arabic.  
+> This is extracted from Almona Vertical Reality OS — fifteen hundred commits,  
+> two hundred workshops in Egypt — now generalized for any industry.  
+> SHIELD.OS: who, where, when, what, approved by — immutable.
+
+End Loom. Paste link into README under **Video**.
+
+---
+
+## Cutaways (optional, 2–3s each)
+
+- `supabase/migrations/001_shield_events.sql` — `trg_shield_no_update`
+- `lib/shield-core/immutable-log.ts` — `recordEvent` only
+- GitHub: https://github.com/almona02/shield-os-hackathon
+
+## Submission checklist
+
+- [ ] Loom URL in README
+- [ ] Demo URL: https://shield-os-hackathon.vercel.app
+- [ ] Repo: https://github.com/almona02/shield-os-hackathon
+- [ ] `META_API_KEY` set on Vercel (Llama panel shows `source: meta_llama`)

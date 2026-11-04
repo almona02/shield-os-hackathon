@@ -27,6 +27,8 @@ export function TechnicianPanel({
     label: string;
     reason_en: string;
     reason_ar: string;
+    source?: string;
+    detections?: number;
   } | null>(null);
 
   const workshop = WORKSHOPS.find((w) => w.id === workshopId) ?? WORKSHOPS[0];
@@ -142,8 +144,8 @@ export function TechnicianPanel({
           />
           <span className="font-normal text-[11px] text-shield-steel/70">
             {locale === "ar"
-              ? "جرّب اسمًا يحتوي fake لرفض SAM"
-              : "Try a name with “fake” to fail the SAM mock"}
+              ? "اسم يحتوي fake للرفض السريع، أو رابط/data-URL لصورة حقيقية عبر SAM 3.1"
+              : "Use “fake” in the name for a quick reject, or paste an https/data image URL for live SAM 3.1"}
           </span>
         </label>
 
@@ -181,7 +183,11 @@ export function TechnicianPanel({
                   : "bg-amber-50 text-amber-900"
             }`}
           >
-            SAM 3.1 mock · {evidence.label} · score {evidence.score}
+            SAM 3.1 · {evidence.source ?? "mock"} · {evidence.label} · score{" "}
+            {evidence.score}
+            {typeof evidence.detections === "number"
+              ? ` · detections ${evidence.detections}`
+              : ""}
             <div className="mt-1">
               {locale === "ar" ? evidence.reason_ar : evidence.reason_en}
             </div>
