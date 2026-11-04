@@ -7,3 +7,6 @@ app/.next/
 *.log
 .DS_Store
 .vercel
+
+.vercel
+.env*
