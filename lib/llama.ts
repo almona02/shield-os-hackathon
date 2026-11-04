@@ -197,22 +197,22 @@ export async function analyzeRiskWithLlama(
     return heuristicRisk(last50, "META_API_KEY not set");
   }
 
+  // Compact payload — Muse Spark spends many tokens on reasoning.
   const compact = last50.map((e) => ({
     type: e.event_type,
     entity: e.entity_id,
     by: e.proof.verified_by,
     at: e.proof.timestamp,
     loc: e.proof.location,
-    payload: e.payload,
+    decision: e.payload?.decision ?? null,
+    kind: e.payload?.kind ?? null,
   }));
 
-  const prompt = `You are SHIELD.OS corruption detector for spare-parts procurement in MENA workshops.
-Analyze these immutable ledger events. Detect: same approver burst, off-hours approval (2 AM), location mismatch, fast approvals.
-Return ONLY valid JSON (no markdown):
+  const prompt = `Return ONLY JSON for corruption risk on these spare-parts ledger events.
+Detect: SAME_APPROVER_BURST, OFF_HOURS_APPROVAL (00:00-05:00 / after 22:00 UTC), LOCATION_MISMATCH, FAST_APPROVAL.
+Schema:
 {"risk_score":0-100,"findings":[{"pattern":"...","severity":"low|medium|high|critical","explanation_en":"...","explanation_ar":"..."}],"summary_en":"...","summary_ar":"..."}
-
-Events:
-${JSON.stringify(compact)}`;
+Events: ${JSON.stringify(compact)}`;
 
   try {
     const res = await fetch(META_URL, {
@@ -226,13 +226,12 @@ ${JSON.stringify(compact)}`;
         messages: [
           {
             role: "system",
-            content:
-              "You are SHIELD.OS. Detect procurement corruption patterns. Reply with JSON only. Dual language EN+AR.",
+            content: "Output JSON only. No prose. Dual language EN+AR in fields.",
           },
           { role: "user", content: prompt },
         ],
-        temperature: 1,
-        max_tokens: 1200,
+        // Reasoning models burn completion budget on hidden reasoning first.
+        max_tokens: 4000,
       }),
     });
 
