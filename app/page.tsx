@@ -42,14 +42,16 @@ export default function HomePage() {
     ]);
     setEvents(e.records ?? []);
     setVerified(e.verified ?? false);
+    // API returns pending-only now (ledger source of truth).
     setApprovals(a.requests ?? []);
   }, []);
 
   useEffect(() => {
     refresh().catch(() => undefined);
+    // Slower poll reduces Manager list flicker during Loom.
     const id = setInterval(() => {
       refresh().catch(() => undefined);
-    }, 4000);
+    }, 8000);
     return () => clearInterval(id);
   }, [refresh]);
 

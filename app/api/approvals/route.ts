@@ -11,14 +11,15 @@ import { analyzeAndTrack, approvals, log } from "@/lib/shield";
 import { verifyEvidence } from "@/lib/sam";
 
 /**
- * Serverless instances do not share the in-memory Map. Rebuild pending
- * approvals from the durable ledger so Manager can still decide.
+ * Pending approvals are derived from the durable ledger (source of truth).
+ * The in-memory Map is only a helper for approve()/reject() on this instance.
  */
-async function hydratePendingFromLedger(): Promise<ApprovalRequest[]> {
-  const records = await log.getChain({ limit: 80 });
+async function syncPendingFromLedger(): Promise<ApprovalRequest[]> {
+  const records = await log.getChain({ limit: 100 });
   const decided = new Set<string>();
-  const pending: ApprovalRequest[] = [];
+  const pending = new Map<string, ApprovalRequest>();
 
+  // records are newest-first
   for (const r of records) {
     const p = (r.payload ?? {}) as Record<string, unknown>;
     const approvalId = typeof p.approval_id === "string" ? p.approval_id : null;
@@ -26,13 +27,15 @@ async function hydratePendingFromLedger(): Promise<ApprovalRequest[]> {
 
     if (p.kind === "approval_decision") {
       decided.add(approvalId);
+      pending.delete(approvalId);
       continue;
     }
+
     if (
       p.kind === "spare_part_request" &&
       p.status === "awaiting_approval" &&
       !decided.has(approvalId) &&
-      !approvals.has(approvalId)
+      !pending.has(approvalId)
     ) {
       const req: ApprovalRequest = {
         id: approvalId,
@@ -53,17 +56,27 @@ async function hydratePendingFromLedger(): Promise<ApprovalRequest[]> {
           },
         ],
       };
-      approvals.set(req.id, req);
-      pending.push(req);
+      pending.set(approvalId, req);
     }
   }
-  return pending;
+
+  // Keep Map aligned: drop decided leftovers, ensure pending are loadable for decide().
+  for (const [id, req] of approvals.entries()) {
+    if (req.status !== "pending" || decided.has(id) || !pending.has(id)) {
+      if (!pending.has(id)) approvals.delete(id);
+    }
+  }
+  for (const [id, req] of pending.entries()) {
+    approvals.set(id, req);
+  }
+
+  return [...pending.values()];
 }
 
 export async function GET() {
-  await hydratePendingFromLedger();
+  const pending = await syncPendingFromLedger();
   return NextResponse.json({
-    requests: [...approvals.values()].reverse(),
+    requests: pending,
   });
 }
 
@@ -80,8 +93,11 @@ export async function POST(request: Request) {
       const partName = String(body.partName ?? body.title ?? "Spare part");
       const workshop = String(body.workshop ?? "Giza Workshop");
       const createdBy = String(body.createdBy ?? "technician");
-      const entityId = String(body.entityId ?? partName.replace(/\s+/g, "-").toLowerCase());
-      const location = (body.location as { lat: number; lon: number } | null) ?? null;
+      const entityId = String(
+        body.entityId ?? partName.replace(/\s+/g, "-").toLowerCase(),
+      );
+      const location =
+        (body.location as { lat: number; lon: number } | null) ?? null;
       const photo = typeof body.photo === "string" ? body.photo : "";
       const photoName = String(body.photoName ?? photo.slice(0, 80));
 
@@ -89,8 +105,6 @@ export async function POST(request: Request) {
         ? await verifyEvidence(photoName || photo, partName)
         : null;
 
-      // Block only the deterministic mock reject (fake-invoice filename).
-      // SAM mismatch is allowed through so the UI can show low relevance.
       if (evidence && evidence.label === "mock_reject") {
         return NextResponse.json(
           {
@@ -106,9 +120,7 @@ export async function POST(request: Request) {
         entityId,
         title: partName,
         createdBy,
-        steps: [
-          { stepId: "manager", role: "manager", label: "Manager" },
-        ],
+        steps: [{ stepId: "manager", role: "manager", label: "Manager" }],
       });
       approvals.set(req.id, req);
 
@@ -141,14 +153,19 @@ export async function POST(request: Request) {
     }
 
     if (body.action === "decide") {
-      await hydratePendingFromLedger();
-      const current = approvals.get(body.id as string);
-      if (!current) {
+      const id = String(body.id ?? "");
+      await syncPendingFromLedger();
+      const current = approvals.get(id);
+      if (!current || current.status !== "pending") {
         return NextResponse.json(
-          { error: "Unknown approval id." },
-          { status: 404 },
+          {
+            error: "This request is not pending (already decided or unknown).",
+            code: "NOT_PENDING",
+          },
+          { status: 409 },
         );
       }
+
       const location =
         (body.location as { lat: number; lon: number } | null) ?? null;
       const next =
@@ -163,13 +180,17 @@ export async function POST(request: Request) {
               approver: body.approver as string,
               note: (body.note as string) ?? undefined,
             });
-      approvals.set(next.id, next);
+
+      // Remove from pending Map immediately so GET cannot resurrect it.
+      approvals.delete(next.id);
+
       const step = next.steps.find(
         (s) => s.stepId === ((body.stepId as string) || "manager"),
       );
       if (!step) {
         return NextResponse.json({ request: next });
       }
+
       const record = await log.recordEvent({
         event_type: "VERIFICATION",
         entity_id: next.entityId,
@@ -182,12 +203,19 @@ export async function POST(request: Request) {
         payload: {
           ...approvalDecisionPayload(next, step),
           kind: "approval_decision",
+          approval_id: next.id,
           part_name: next.title,
           workshop: body.workshop ?? null,
         },
       });
       const findings = analyzeAndTrack(record);
-      return NextResponse.json({ request: next, record, findings });
+      const pending = await syncPendingFromLedger();
+      return NextResponse.json({
+        request: next,
+        record,
+        findings,
+        requests: pending,
+      });
     }
 
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });

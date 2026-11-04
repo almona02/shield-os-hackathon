@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/i18n";
 import { WORKSHOPS, copy } from "@/lib/i18n";
 
@@ -35,11 +35,30 @@ export function ManagerPanel({
   const t = copy[locale];
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const pending = approvals.filter((a) => a.status === "pending");
+  // Local optimistic list so polling cannot flicker items back after approve.
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    // If server confirms something is gone, clear its hidden flag.
+    setHiddenIds((prev) => {
+      const next = new Set(prev);
+      for (const id of prev) {
+        if (!approvals.some((a) => a.id === id && a.status === "pending")) {
+          next.delete(id);
+        }
+      }
+      return next;
+    });
+  }, [approvals]);
+
+  const pending = approvals.filter(
+    (a) => a.status === "pending" && !hiddenIds.has(a.id),
+  );
 
   const decide = async (id: string, decision: "approved" | "rejected") => {
     setBusyId(id);
     setError("");
+    setHiddenIds((prev) => new Set(prev).add(id));
     const workshop = WORKSHOPS[0];
     try {
       const res = await fetch("/api/approvals", {
@@ -57,11 +76,22 @@ export function ManagerPanel({
       });
       const data = await res.json();
       if (!res.ok) {
+        // Put it back if the server rejected the decision.
+        setHiddenIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
         setError(`${data.code ?? "ERR"}: ${data.error}`);
         return;
       }
       onDecided();
     } catch {
+      setHiddenIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
       setError(locale === "ar" ? "خطأ في الشبكة" : "Network error");
     } finally {
       setBusyId(null);
@@ -88,9 +118,7 @@ export function ManagerPanel({
               {a.title}
             </div>
             <div className="mt-0.5 text-xs text-shield-steel">
-              {locale === "ar"
-                ? `من ${a.createdBy}`
-                : `from ${a.createdBy}`}
+              {locale === "ar" ? `من ${a.createdBy}` : `from ${a.createdBy}`}
             </div>
             <div className="mt-3 flex gap-2">
               <button
