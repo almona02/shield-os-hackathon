@@ -8,7 +8,7 @@
 |---|---|
 | **Live Demo** | https://shield-os-hackathon.vercel.app |
 | **Dashboard** | https://shield-os-hackathon.vercel.app/shield |
-| **Video** | *(paste Loom URL)* |
+| **Video** | Record from `docs/demo-script.md` → paste Loom URL here before submit |
 | **Repo** | https://github.com/almona02/shield-os-hackathon |
 | **Source Reality OS** | https://github.com/almona02/almona-portfolio-forge |
 
@@ -31,51 +31,49 @@ In workshop operations, approvals for spare parts, service, and procurement are 
 SHIELD.OS isolates three modules from Reality OS into a minimal, reusable layer:
 
 1. **immutable-log.ts** — from `realityos_core/event_ledger.py` + `chain_verifier.py`
-   - Append-only store with hash chain (`prev_hash` → `event_hash`)
-   - Postgres: RLS denies UPDATE/DELETE; trigger `shield_block_mutation()` raises on tamper
-   - API returns **405** for PUT/PATCH/DELETE
-
 2. **approval-chain.ts** — from `ManufacturingAuthorityResolver.ts` + `vertical_registry.py`
-   - Rules: no self-approval, distinct approvers, ordered transitions, frozen state after decision
-   - No override path
-
 3. **anomaly-engine.ts** — from `fraud_detector.py` + `anomaly_rule.py`
-   - Heuristics: same-approver burst, off-hours, geo mismatch, fast approvals, impossible travel
-   - Evidence-only — flags, never silently blocks the append
 
 ### Architecture
 
 ```
-Action → Log (immutable) → Llama Check → Approval
+Action → Log (immutable) → Meta Model Check → Approval
 ```
 
-```mermaid
-flowchart TD
-  A[Action: request / approve] --> B[Immutable Log]
-  B --> C[Llama Risk Check]
-  C --> D[Approval Decision]
-  D --> B
+### Meta AI Integration (one truth)
+
+| Tool | Usage | What judges see |
+|------|-------|-----------------|
+| **Muse Spark 1.3** via Meta Model API | `lib/llama.ts` → `/api/risk` scores last 50 events (EN/AR) | Badge: `Source: muse-spark-1.3 \| Meta Model API (LIVE)` — or explicit `local_heuristic (fallback — reason)` |
+| **SAM 3.1** | `lib/sam.ts` — https/data URLs proxied as base64 to Meta Responses API | Badge: `LIVE SAM 3.1 — N detections` |
+| **SAM mock** | Filename-only demo (`fake-invoice.png`) | Badge: `MOCK DEMO — filename rule for stable demo` |
+| **Muse Code** | Core extraction from Reality OS | Git history |
+
+> Honest note: Meta’s public Llama API (`api.llama.com`) returned 401 for this project key (preview shut down). Risk scoring uses Meta’s current Model API chat model **`muse-spark-1.3`** on `https://api.meta.ai/v1/chat/completions` with the same Bearer key as SAM 3.1. Network tab shows `POST api.meta.ai` → 200 JSON.
+
+SAM: mocked for filename demo, live for https URLs via base64 proxy — see Loom when available.
+
+### Prove immutability (DB, not just UI)
+
+```sql
+-- Supabase SQL editor
+UPDATE shield_events SET entity_id = 'HACKED' WHERE chain_position = 1;
 ```
 
-### Meta AI Integration
+```text
+ERROR:  25001: shield_events is append-only: UPDATE is not allowed
+CONTEXT:  PL/pgSQL function shield_block_mutation() line 3 at RAISE
+```
 
-| Tool | Usage | Status |
-|------|-------|--------|
-| **Llama 4 Maverick** via Meta Model API | `lib/llama.ts` — last 50 events → `{risk_score, findings, explanation_en/ar}` | Live + heuristic fallback |
-| **SAM 3.1** | `lib/sam.ts` `verifyEvidence()` — part photo vs fake invoice; image proxied to Meta Responses API | Live (`source: sam_3_1`); filename mock for Loom shortcuts |
-| **Muse Image** | Fake vs real invoice assets for demo | Demo packaging |
-| **Muse Code** | Extracted core modules from Python/TS originals | Git history |
+Full repro: [`docs/immutability-proof.md`](./docs/immutability-proof.md). Also `PUT /api/events` → 405 and `POST /api/tamper` → trigger message.
 
 ### Demo
 
-1. **/** Technician: request part (e.g. Motor YLM-45 GENESIS) + evidence + geo → `/api/approvals`
-2. Evidence `fake-invoice.png` → reject score ~18 (`mock`)
-3. Paste Unsplash/https image URL → accept (`sam_3_1`)
-4. Switch to Manager → Approve/Reject → chained `VERIFICATION` event
-5. `PUT /api/events` → **405**; `POST /api/tamper` → Postgres trigger blocks
-6. **/shield** — hash timeline (`Chain verified`), SVG map, Llama Risk Panel (EN/AR + RTL)
-
-See `docs/demo-script.md` for the 90s Loom teleprompter.
+1. `/` Technician + `fake-invoice.png` → **MOCK DEMO** reject (~18)
+2. Paste https image URL → **LIVE SAM 3.1** accept
+3. Manager Approve → chained event
+4. `/shield` → Chain verified · map · Risk badge **LIVE** Muse Spark
+5. Show Network: `POST /api/risk` and Meta upstream 200
 
 ### How to Run
 
@@ -88,17 +86,16 @@ npm install
 npm run dev
 ```
 
-Without Supabase env vars, the API falls back to an in-memory append-only store. **Production uses Supabase** (`001_shield_events.sql`).
+Production ledger: Supabase `001_shield_events.sql`.
 
 ### What This Proves
 
-We wanted to validate that the governance layer of Reality OS can stand alone as a general integrity layer for any vertical (workshop, construction, procurement). SHIELD.OS is that validation — small, testable, and deployable separately from the larger OS.
+The governance layer of Reality OS can stand alone as a general integrity layer. SHIELD.OS is that validation — small, testable, deployable separately.
 
 ### Next Steps
 
-- Pilot Fabricator Pro + SHIELD in 2–3 workshops in Giza for field data
-- Harden SAM prompts per part SKU with workshop photo corpora
-- Persist approvals table alongside the immutable ledger
+- Pilot Fabricator Pro + SHIELD in 2–3 workshops in Giza
+- Harden SAM prompts per part SKU
 
 ### License
 

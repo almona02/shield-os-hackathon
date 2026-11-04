@@ -30,8 +30,8 @@ SHIELD.OS extracts three modules:
 
 ### Meta AI usage
 
-- **Llama 4 Maverick** (`lib/llama.ts`) scores last 50 events for risk (0–100) with bilingual EN/AR explanation. Heuristic fallback for offline demo.
-- **SAM 3.1** (`lib/sam.ts`) verifies evidence photos via Meta Responses API (`sam-3.1`). Images are proxied/resized server-side. Filename mock remains for fast Loom beats (`fake-invoice.png` → score 18).
+- **Muse Spark 1.3** (`lib/llama.ts`) on Meta Model API scores last 50 events for risk (0–100) with bilingual EN/AR. UI badge shows `LIVE` or explicit `local_heuristic (fallback — reason)`. (Llama public API preview is shut down; Muse Spark is Meta’s current chat endpoint for this key.)
+- **SAM 3.1** (`lib/sam.ts`) verifies https evidence via Responses API (base64 proxy). Filename `fake-invoice.png` uses a labeled **MOCK DEMO** path for stable Loom beats.
 - **Muse Code** was used for the core extraction — visible in git history.
 
 ### Demo

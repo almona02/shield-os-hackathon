@@ -56,13 +56,15 @@ Open https://shield-os-hackathon.vercel.app in a **narrow** window (mobile-first
 **Driver**
 1. Open **Shield Dashboard** `/shield`
 2. Confirm pill: **Chain verified**
-3. Map shows Giza pin · Llama Risk Panel: OFF_HOURS / same-approver
-4. Optional: toggle **العربية**
+3. Risk badge must say **Source: muse-spark-1.3 | Meta Model API (LIVE)** — not local_heuristic
+4. Optional DevTools Network: `POST /api/risk` 200 + JSON with `"source":"meta_model_api"`
+5. Map Giza pin · OFF_HOURS finding
+6. Optional: toggle **العربية**
 
 **You say**
-> Chain verified. Llama flags off-hours approvals — high risk, English and Arabic.  
+> Chain verified. Meta Muse Spark scores this ledger live — off-hours high risk, English and Arabic.  
 > This is extracted from Almona Vertical Reality OS — fifteen hundred commits,  
-> two hundred workshops in Egypt — now generalized for any industry.  
+> now generalized for any industry.  
 > SHIELD.OS: who, where, when, what, approved by — immutable.
 
 End Loom. Paste link into README under **Video**.

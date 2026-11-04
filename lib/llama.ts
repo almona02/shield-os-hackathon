@@ -1,7 +1,9 @@
 /**
- * Meta Llama (Muse Spark / Llama 4 Maverick) — real Model API client.
- * Env: META_API_KEY, META_MODEL (or META_LLAMA_MODEL), optional META_LLAMA_URL.
- * Falls back to local heuristics only when the key is missing or the call fails.
+ * Meta Model API risk analysis (Muse Spark 1.3).
+ * Llama public API (api.llama.com) was shut down; Meta's current chat
+ * endpoint for hackathon keys is Muse Spark on https://api.meta.ai/v1.
+ *
+ * Env: META_API_KEY, META_MODEL (default muse-spark-1.3), META_LLAMA_URL
  */
 
 export interface LlamaRiskFinding {
@@ -16,7 +18,13 @@ export interface LlamaRiskResult {
   findings: LlamaRiskFinding[];
   summary_en: string;
   summary_ar: string;
-  source: "meta_llama" | "local_heuristic";
+  /** Machine source id for UI badge */
+  source: "meta_model_api" | "local_heuristic";
+  /** Human-readable badge line judges see on /shield */
+  source_label: string;
+  model: string;
+  endpoint: string;
+  fallback_reason?: string;
 }
 
 export interface ShieldEventLite {
@@ -34,21 +42,44 @@ export interface ShieldEventLite {
 
 const META_URL =
   process.env.META_LLAMA_URL ??
-  "https://api.llama.com/v1/chat/completions";
+  "https://api.meta.ai/v1/chat/completions";
 
-/** Prefer META_MODEL (hackathon convention), then META_LLAMA_MODEL. */
+/** Muse Spark is Meta Model API's live chat model for hackathon keys. */
 const META_MODEL =
   process.env.META_MODEL ??
   process.env.META_LLAMA_MODEL ??
-  "llama-4-maverick";
+  "muse-spark-1.3";
+
+const LIVE_LABEL = `Source: ${META_MODEL} | Meta Model API (LIVE)`;
+const FALLBACK_PREFIX = "Source: local_heuristic (fallback";
 
 function hourUtc(iso: string): number {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? 12 : d.getUTCHours();
 }
 
+function withFallbackMeta(
+  result: Omit<
+    LlamaRiskResult,
+    "source" | "source_label" | "model" | "endpoint" | "fallback_reason"
+  >,
+  reason: string,
+): LlamaRiskResult {
+  return {
+    ...result,
+    source: "local_heuristic",
+    source_label: `${FALLBACK_PREFIX} — ${reason})`,
+    model: META_MODEL,
+    endpoint: META_URL,
+    fallback_reason: reason,
+  };
+}
+
 /** Local corruption-pattern detector used when Meta API is unavailable. */
-export function heuristicRisk(events: ShieldEventLite[]): LlamaRiskResult {
+export function heuristicRisk(
+  events: ShieldEventLite[],
+  reason = "META_API_KEY not set",
+): LlamaRiskResult {
   const findings: LlamaRiskFinding[] = [];
   const approvals = events.filter(
     (e) =>
@@ -150,23 +181,21 @@ export function heuristicRisk(events: ShieldEventLite[]): LlamaRiskResult {
       ? "لم تُكتشف أنماط فساد في آخر الأحداث."
       : findings.map((f) => f.explanation_ar).join(" ");
 
-  return {
-    risk_score: score,
-    findings,
-    summary_en,
-    summary_ar,
-    source: "local_heuristic",
-  };
+  return withFallbackMeta(
+    { risk_score: score, findings, summary_en, summary_ar },
+    reason,
+  );
 }
 
 export async function analyzeRiskWithLlama(
   events: ShieldEventLite[],
 ): Promise<LlamaRiskResult> {
   const last50 = events.slice(0, 50);
-  const fallback = heuristicRisk(last50);
   const apiKey = process.env.META_API_KEY?.trim();
 
-  if (!apiKey) return fallback;
+  if (!apiKey) {
+    return heuristicRisk(last50, "META_API_KEY not set");
+  }
 
   const compact = last50.map((e) => ({
     type: e.event_type,
@@ -202,22 +231,29 @@ ${JSON.stringify(compact)}`;
           },
           { role: "user", content: prompt },
         ],
-        temperature: 0.2,
-        max_tokens: 900,
+        temperature: 1,
+        max_tokens: 1200,
       }),
     });
 
     if (!res.ok) {
-      console.warn("[llama] Meta API error", res.status, await res.text());
-      return fallback;
+      const body = await res.text();
+      console.warn("[llama] Meta API error", res.status, body);
+      const reason =
+        res.status === 429
+          ? "rate limited"
+          : res.status === 401 || res.status === 403
+            ? "auth failed"
+            : `HTTP ${res.status}`;
+      return heuristicRisk(last50, reason);
     }
 
     const data = (await res.json()) as {
+      model?: string;
       choices?: { message?: { content?: string } }[];
       completion_message?: { content?: { text?: string } | string };
     };
 
-    // Support both OpenAI-style and Llama API response shapes.
     let text = data.choices?.[0]?.message?.content ?? "";
     if (!text && data.completion_message?.content) {
       const c = data.completion_message.content;
@@ -225,18 +261,33 @@ ${JSON.stringify(compact)}`;
     }
 
     const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return fallback;
+    if (!match) {
+      return heuristicRisk(last50, "empty/non-JSON model response");
+    }
 
-    const parsed = JSON.parse(match[0]) as Omit<LlamaRiskResult, "source">;
+    const parsed = JSON.parse(match[0]) as {
+      risk_score?: number;
+      findings?: LlamaRiskFinding[];
+      summary_en?: string;
+      summary_ar?: string;
+    };
+
+    const fallback = heuristicRisk(last50, "unused");
     return {
       risk_score: Math.max(0, Math.min(100, Number(parsed.risk_score) || 0)),
       findings: Array.isArray(parsed.findings) ? parsed.findings : [],
       summary_en: parsed.summary_en || fallback.summary_en,
       summary_ar: parsed.summary_ar || fallback.summary_ar,
-      source: "meta_llama",
+      source: "meta_model_api",
+      source_label: LIVE_LABEL,
+      model: data.model || META_MODEL,
+      endpoint: META_URL,
     };
   } catch (err) {
     console.warn("[llama] call failed, using heuristic", err);
-    return fallback;
+    return heuristicRisk(
+      last50,
+      err instanceof Error ? err.message : "network error",
+    );
   }
 }

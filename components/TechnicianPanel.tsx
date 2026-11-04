@@ -185,11 +185,21 @@ export function TechnicianPanel({
                   : "bg-amber-50 text-amber-900"
             }`}
           >
-            SAM 3.1 · {evidence.source ?? "mock"} · {evidence.label} · score{" "}
-            {evidence.score}
-            {typeof evidence.detections === "number"
-              ? ` · detections ${evidence.detections}`
-              : ""}
+            <div className="mb-1.5">
+              {evidence.source === "sam_3_1" ? (
+                <span className="inline-block rounded-full bg-emerald-700 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                  LIVE SAM 3.1
+                  {typeof evidence.detections === "number"
+                    ? ` — ${evidence.detections} detections`
+                    : ""}
+                </span>
+              ) : (
+                <span className="inline-block rounded-full bg-stone-800 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-200">
+                  MOCK DEMO — filename rule for stable demo
+                </span>
+              )}
+            </div>
+            {evidence.label} · score {evidence.score}
             <div className="mt-1">
               {locale === "ar" ? evidence.reason_ar : evidence.reason_en}
             </div>
