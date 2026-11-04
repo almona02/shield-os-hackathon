@@ -58,10 +58,10 @@ Set `META_API_KEY` from [dev.meta.ai](https://dev.meta.ai) credits in `app/.env.
 
 ## Demo
 
-- **App:** http://localhost:3000 (Technician / Manager + Arabic RTL)
-- **Dashboard:** http://localhost:3000/shield (hash timeline · map · Llama risk)
-- **Production:** *(add Vercel URL after deploy)*
-- **Video:** *(add Loom link)*
+- **App:** https://shield-os-hackathon.vercel.app (Technician / Manager + Arabic RTL)
+- **Dashboard:** https://shield-os-hackathon.vercel.app/shield (hash timeline · map · Llama risk)
+- **GitHub:** https://github.com/almona02/shield-os-hackathon
+- **Video:** *(record Loom — see docs/demo-script.md)*
 
 ```bash
 git clone https://github.com/almona02/shield-os-hackathon
