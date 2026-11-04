@@ -1,0 +1,1 @@
+{"error":"shield_events is append-only: UPDATE not allowed"}PUT body:
