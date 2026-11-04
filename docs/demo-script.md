@@ -1,85 +1,89 @@
-# SHIELD.OS — 90s Demo Video
+# SHIELD.OS — 90-second demo script
 
 **Live:** https://shield-os-hackathon.vercel.app  
 **Dashboard:** https://shield-os-hackathon.vercel.app/shield  
 
-**Pitch line:** *SHIELD.OS — Tamper-Evident Approvals with Meta-Powered Risk Intelligence*
+**Opening line:**  
+*SHIELD.OS — tamper-evident approvals with Meta-powered risk intelligence for human review.*
 
-This is a **credible hackathon prototype**. Do not call it judge-proof, production-ready, or a confirmed finalist. Speak only to what is on screen.
+Please speak only to what appears on screen. This is a careful hackathon prototype, not a finished production product.
 
-Do **not** run `POST /api/tamper` during recording. Prefer `PUT /api/events` → **405**. Optional: pre-captured SQL screenshot from `docs/immutability-proof.md` (demo of append-only design — not a live independent audit).
+Avoid `POST /api/tamper` while recording. Prefer `PUT /api/events` → **405**. An optional SQL screenshot from [`immutability-proof.md`](./immutability-proof.md) may help illustrate append-only design.
 
----
-
-## Do not say
-
-- “Fraud-proof / corruption-proof / production-ready”
-- “94% certainty” or “proven collusion”
-- “SAM proves the photo is authentic”
-- “Every audit is fixed” / “judge-proof” / score predictions
-- “Chain verified = full database immutability proven”
-
-**Do say:** signal for human review · object localization / category relevance · synthetic demo history · append-only API behavior
+Storyboard images: [`demo-frames/SEQUENCE.md`](./demo-frames/SEQUENCE.md)
 
 ---
 
-## Click-by-click teleprompter (strongest sequence)
+## Gentle wording guide
 
-Narrow mobile-width window. Prefer this order (consultant): **real motor → SAM → approve → verified timeline → Muse**. Mention the mock once, briefly.
+Prefer:
 
-### 0–40s — Live motor + SAM + approve
+- “signal for human review”  
+- “object localization / category relevance”  
+- “synthetic demonstration history”  
+- “the API rejects edits with 405”
 
-**Driver**
-1. Home · Technician · Part **Motor YLM-45 GENESIS** · Workshop **Giza - Almona**
-2. Evidence = **prefilled Pexels motor URL** → Submit  
-   - Hold whatever the UI shows (e.g. **LIVE SAM 3.1 — object localization** · match · relevance **~81–91%** · `electric motor`)  
-   - Say the **actual** numbers on screen — do not invent them
-3. *(Optional, ≤5s)* Swap evidence to `fake-invoice.png` once → **MOCK DEMO — filename rule (not SAM)** · ~18 → then return to motor URL  
-   - Or skip and only name the mock in narration
-4. Manager → **Approve** (use capture GPS / workshop default)
-5. Optional: `curl -X PUT …/api/events` → **405**
+Please avoid:
 
-**You say**
-> Workshop spare-part request for Motor YLM-45 in Giza.  
-> Live SAM 3.1 does object localization and scores category relevance to the requested part — not forensic authenticity.  
-> A manager approves; the event is hash-chained. The API rejects edits with 405.  
-> *(If you showed the mock)* Separately, a deterministic filename rule rejects fake-invoice.png — that mock is not SAM.
+- fraud-proof / production-ready / judge-proof  
+- “proven collusion” or percent certainty of fraud  
+- “SAM proves the photo is authentic”  
+- “chain verified proves full database immutability”
 
-### 40–70s — Verified timeline + map
+---
 
-**Driver**
-1. Open `/shield`
-2. **Chain verified** · curated ~10 events + your new approve · map pins  
-3. Stay on the top of the timeline — do not scroll forever
+## Suggested sequence
 
-**You say**
-> This dashboard shows a curated synthetic demonstration ledger — Giza workshop requests and approvals — plus the live event we just added.  
-> Chain verified means this history passes our hash-chain verifier. It is evidence of an inspectable audit trail, not a claim of production-complete security.
+Narrow the window. Preferred order: **motor image → SAM → approve → timeline → Muse**. Mention the mock briefly if you show it.
 
-### 70–90s — Muse signals + close
+### 0–40s — Request, SAM, approve
 
-**Driver**
-1. Risk badge: **Source: muse-spark-1.3 | Meta Model API (LIVE)** · note `generated_at`
-2. Point at disclaimer under the badge
-3. Glance at findings labeled **· signal** (OFF_HOURS, SAME_APPROVER, …) — use the **score on screen** (often ~85–88)
+**Steps**
+1. Home · Technician · Motor YLM-45 GENESIS · Giza - Almona  
+2. Submit the prefilled motor image URL  
+3. Read the LIVE SAM badge and the relevance % shown on screen  
+4. Optional: briefly try `fake-invoice.png` (MOCK DEMO filename rule), then return to the motor URL  
+5. Switch to Manager · Approve  
+6. Optional: show `PUT /api/events` → 405  
 
-**You say**
-> Muse Spark 1.3 flags patterns such as off-hours and same-approver as signals for human review.  
+**Suggested narration**
+> This is a spare-part request for Motor YLM-45 in our Giza workshop.  
+> Live SAM 3.1 localizes objects and scores relevance to the requested part — not forensic authenticity.  
+> A manager approves, and the event is added to the hash chain. The API returns 405 if we try to edit.  
+> *(If mock was shown)* The fake-invoice name is rejected by a simple demo rule — that path is not SAM.
+
+### 40–70s — Timeline and map
+
+**Steps**
+1. Open `/shield`  
+2. Note **Chain verified**, the timeline, and the map  
+3. Stay near the top of the list  
+
+**Suggested narration**
+> This dashboard shows a curated demonstration ledger for a Giza workshop, plus the live events we just created.  
+> Chain verified means this history passes our hash-chain check. It is an inspectable audit trail for the demo — not a claim of finished production security.
+
+### 70–90s — Muse and close
+
+**Steps**
+1. Point to **muse-spark-1.3 | Meta Model API (LIVE)** and `generated_at`  
+2. Point to the disclaimer under the badge  
+3. Briefly mention findings labeled as signals; use the score on screen  
+
+**Suggested narration**
+> Muse Spark highlights patterns such as off-hours and same-approver activity as signals for human review.  
 > The score is an uncalibrated model signal — not a fraud probability.  
-> SHIELD.OS: who, where, when, what, approved by — tamper-evident risk intelligence. Extracted from Almona Reality OS; Fabricator Pro is still in pilot.  
-> Links: GitHub, live app, this video.
+> SHIELD.OS records who, where, when, what, and who approved. It is extracted from Almona Reality OS; Fabricator Pro is still in pilot.  
+> Links are in the README: GitHub, live app, and this video. Thank you.
 
-End Loom → paste URL into README → check GitHub / live / Loom **signed out** → submit on Cerebral Valley.
-
-Curated seed SQL (already applied): [`docs/loom-reseed.sql`](./loom-reseed.sql)
+When finished: paste the Loom URL into the README, check all links signed out, then submit on Cerebral Valley.
 
 ---
 
-## Submission checklist
+## Quick checklist
 
-- [ ] Loom URL in README (`paste before submit`)
-- [ ] Live: https://shield-os-hackathon.vercel.app (opens signed out)
-- [ ] Repo: https://github.com/almona02/shield-os-hackathon (public)
-- [ ] Risk badge shows LIVE (not `local_heuristic`)
-- [ ] Narration uses on-screen scores only
-- [ ] No “production-ready” / “fraud-proof” claims in video
+- [ ] Loom URL in README  
+- [ ] Live app opens signed out  
+- [ ] GitHub is public  
+- [ ] Narration matches on-screen scores  
+- [ ] Calm, accurate claims only  

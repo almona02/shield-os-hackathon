@@ -1,17 +1,16 @@
-# DB immutability proof (Supabase)
+# Append-only ledger notes (Supabase)
 
-API 405 is necessary but not sufficient. Judges need the Postgres trigger.
+The HTTP API returns 405 for UPDATE-style calls. The database also blocks mutation with a trigger. Together they illustrate the demo’s append-only design.
 
-## Reproduce in Supabase SQL editor
+## In the Supabase SQL editor
 
 ```sql
--- As any role (incl. service_role / dashboard SQL)
 UPDATE shield_events
 SET entity_id = 'HACKED'
 WHERE chain_position = 1;
 ```
 
-**Actual result (captured 2026-11-04):**
+Expected result (captured 2026-11-04):
 
 ```text
 ERROR:  25001: shield_events is append-only: UPDATE is not allowed
@@ -25,14 +24,17 @@ DELETE FROM shield_events WHERE chain_position = 1;
 -- ERROR: shield_events is append-only: DELETE is not allowed
 ```
 
-## Also in the demo app
+## From the demo app
 
 ```bash
 curl -X PUT https://shield-os-hackathon.vercel.app/api/events
-# {"error":"shield_events is append-only: UPDATE not allowed"}  → HTTP 405
+# HTTP 405 — append-only response
 
+# Optional; not recommended during Loom recording:
 curl -X POST https://shield-os-hackathon.vercel.app/api/tamper
-# {"blocked":true,"layer":"postgres_trigger","update":{"blocked":true,"message":"shield_events is append-only: UPDATE is not allowed"},...}
 ```
 
-Trigger source: `supabase/migrations/001_shield_events.sql` → `trg_shield_no_update` / `shield_block_mutation()`.
+Trigger source: `supabase/migrations/001_shield_events.sql`  
+(`trg_shield_no_update` / `shield_block_mutation`).
+
+Please treat this as a clear demo of the append-only design for hackathon review — not as a full independent security certification.

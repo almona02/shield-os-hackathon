@@ -1,37 +1,44 @@
-# Submission checklist — due tomorrow
+# Cerebral Valley / Meta Hackathon — submission sheet
 
-Paste these into the Meta hackathon form.
+Please use these fields when submitting. Keep the tone calm and accurate.
 
 ## Required links
 
 1. **GitHub:** https://github.com/almona02/shield-os-hackathon  
 2. **Live demo:** https://shield-os-hackathon.vercel.app/  
-3. **Video (Loom):** ______________________________ ← record from `docs/demo-script.md`
+3. **Video (Loom):** ______________________________  
 
-## Copy-paste fields
+Record from [`demo-script.md`](./demo-script.md). Paste the Loom URL into the README before submit.
 
-- **Title:** use `docs/PITCH.md` → PROJECT TITLE  
-- **One-liner:** use `docs/PITCH.md` → ONE-LINER  
-- **Full description:** use `docs/PITCH.md` → FULL DESCRIPTION  
-- **README:** repo root `README.md` (this is the judge-facing doc)
+## Form copy
 
-## 90s Loom (do tonight)
+| Field | Source |
+|---|---|
+| Title | `docs/PITCH.md` → PROJECT TITLE |
+| One-liner | `docs/PITCH.md` → ONE-LINER |
+| Full description | `docs/PITCH.md` → FULL DESCRIPTION |
+| README | Repository root `README.md` |
 
-1. `/` → `fake-invoice.png` → reject ~18  
-2. `/` → Unsplash URL → `sam_3_1` accept  
-3. Manager Approve → feed updates  
-4. `curl -X PUT …/api/events` → 405  
-5. `/shield` → Chain verified + map + OFF_HOURS risk  
+## Suggested 90-second video
 
-## Honest framing (keep this)
+1. Home → real motor image → LIVE SAM relevance  
+2. Manager → Approve  
+3. Optional brief mock: `fake-invoice.png` (say it is a filename rule, not SAM)  
+4. Optional: `PUT /api/events` → 405  
+5. `/shield` → Chain verified · map · Muse LIVE · disclaimer  
 
-- Fabricator Pro = **1,539 commits**, **pilot / pre-deployment** — not claiming production rollout to 200 workshops in the pitch.  
-- SHIELD = extracted governance core, validated independently.  
-- Next = Giza pilot with Fabricator Pro + SHIELD.
+## How we ask to be read
 
-## Pre-flight (already green on prod)
+- Fabricator Pro is in **pilot**, not a full production rollout.  
+- SHIELD is an extracted governance prototype with Meta-powered **signals for human review**.  
+- The ledger on `/shield` includes curated demonstration events plus live demo actions.  
+- We do not claim fraud-proof or production-complete security.
 
-- [x] Supabase immutable ledger  
-- [x] SAM 3.1 live path  
-- [x] Llama risk panel  
-- [ ] Loom URL pasted into README + form  
+## Checklist
+
+- [ ] Loom URL in README and in the Cerebral Valley form  
+- [ ] All three links open while signed out  
+- [ ] Risk badge shows LIVE (or clearly labeled fallback)  
+- [ ] Narration matches what is on screen  
+
+Thank you for reviewing SHIELD.OS.

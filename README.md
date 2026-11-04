@@ -1,81 +1,91 @@
-# SHIELD.OS — Tamper-Evident Approvals with Meta-Powered Risk Intelligence
+# SHIELD.OS
 
-### Meta Global AI Developer Hackathon 2026 Submission
+**Tamper-evident workshop approvals with Meta-powered risk signals for human review.**
 
-> Who, Where, When, What, Approved By — append-only, hash-chained.
+Meta Global AI Developer Hackathon 2026 · Cerebral Valley submission
+
+> Who · Where · When · What · Approved by — recorded in an append-only, hash-chained ledger.
 
 | | |
 |---|---|
-| **Live Demo** | https://shield-os-hackathon.vercel.app |
-| **Dashboard** | https://shield-os-hackathon.vercel.app/shield |
-| **Video** | Record from `docs/demo-script.md` → paste Loom URL here before submit |
-| **Repo** | https://github.com/almona02/shield-os-hackathon |
-| **Source Reality OS** | https://github.com/almona02/almona-portfolio-forge |
+| Live app | https://shield-os-hackathon.vercel.app |
+| Dashboard | https://shield-os-hackathon.vercel.app/shield |
+| Demo video | *(paste Loom URL before submit)* |
+| Repository | https://github.com/almona02/shield-os-hackathon |
+| Parent project | https://github.com/almona02/almona-portfolio-forge |
+
+Pitch text for the form: [`docs/PITCH.md`](./docs/PITCH.md)  
+Submission checklist: [`docs/SUBMISSION.md`](./docs/SUBMISSION.md)
 
 ---
 
-### Context
+## Context
 
-Almona Co. is an authorized YILMAZ dealer in Egypt (est. 1991). We built **Almona Vertical Reality OS** connecting machinery discovery, workshop planning, Fabricator Pro (BOM / cutting), and machine service history.
+Almona Co. is an authorized YILMAZ dealer in Egypt (since 1991). We are building **Almona Vertical Reality OS** for machinery discovery, workshop planning, Fabricator Pro, and service history.
 
-Fabricator Pro is engineering-complete (**1,539 commits**) but still in **pilot / pre-deployment** — not rolled out to production workshops. SHIELD.OS extracts the governance core so it can be validated independently.
+Fabricator Pro is engineering-complete in many areas (~1,539 commits) but still in **pilot**. SHIELD.OS extracts the governance core so judges can inspect it on its own.
 
-### Problem
+## What problem we address
 
-Workshop spare-part and service approvals often live in editable sheets. After-the-fact edits weaken trust. Enterprise GRC tools are heavy for shop-floor prevention.
+Spare-part and service approvals often live in editable sheets. Later edits make it hard to trust who approved what. Heavy enterprise tools are often a poor fit for a workshop floor.
 
-### Solution
+## What this demo shows
 
-Three extracted modules:
+Three small modules:
 
-1. **immutable-log.ts** — hash-chained append-only ledger  
-2. **approval-chain.ts** — ordered approvals, no self-approval, no override  
-3. **anomaly-engine.ts** — evidence-only risk signals (never silent blocks)
+1. **immutable-log** — hash-chained, append-only event ledger  
+2. **approval-chain** — ordered approval, no self-approval  
+3. **anomaly-engine** — risk signals for human review (not silent blocks)
 
 ```
-Action → Log (immutable) → Meta Model Check → Approval
+Action → append-only log → Meta model check → approval
 ```
 
-### Meta AI Integration (one truth)
+## Meta AI in this project
 
-| Tool | Behavior | Judge-facing badge |
-|------|----------|--------------------|
-| **Muse Spark 1.3** | `/api/risk` analyzes last 50 events (EN/AR) | `Source: muse-spark-1.3 \| Meta Model API (LIVE)` or labeled `local_heuristic (fallback — reason)` |
-| **SAM 3.1** | Category object localization on https/data URLs | `LIVE SAM 3.1 — object localization` + relevance % to requested part |
-| **Filename mock** | `fake-invoice.png` etc. | `MOCK DEMO — filename rule (not SAM)` |
+| Capability | What it does | What you will see |
+|---|---|---|
+| Muse Spark 1.3 | Summarizes recent events (EN / AR) | `Source: muse-spark-1.3 \| Meta Model API (LIVE)` or a labeled fallback |
+| SAM 3.1 | Object localization + category relevance | `LIVE SAM 3.1 — object localization` and a relevance % |
+| Filename demo rule | Rejects names like `fake-invoice.png` | `MOCK DEMO — filename rule (not SAM)` |
 
-SAM scores **visual category relevance** (e.g. “electric motor”), not authenticity, freshness, or anti-forgery. Detecting a person does **not** satisfy a motor request (mismatch ~35%).
+Please note:
 
-Risk score is an **uncalibrated model signal for human review** — not a fraud probability.
+- SAM scores **visual relevance** to the requested category. It does not prove a photo is authentic.  
+- The Muse score is an **uncalibrated signal for human review**, not a fraud percentage.
 
-### Prove immutability (DB)
+## Append-only behavior
 
 ```sql
 UPDATE shield_events SET entity_id = 'HACKED' WHERE chain_position = 1;
 -- ERROR: shield_events is append-only: UPDATE is not allowed
 ```
 
-See [`docs/immutability-proof.md`](./docs/immutability-proof.md). Also `PUT /api/events` → 405.
+Details: [`docs/immutability-proof.md`](./docs/immutability-proof.md).  
+`PUT /api/events` also returns **405**.
 
-### Prototype limitations (disclosed)
+## Prototype limitations
 
-- **Identity:** `createdBy` / `approver` come from the request body — no Supabase Auth binding yet  
-- **Approvals Map:** in-memory on the server; may reset on serverless cold start (ledger events remain durable in Supabase)  
-- **SAM:** object localization / category relevance — not forensic image authentication  
-- **Ledger verify:** single query (fine for demo scale; not claimed as paginated full-history at 1000+ rows)  
-- **Concurrency:** unique `chain_position` rejects races; no transactional retry loop yet  
+We kindly disclose these limits so the demo is easy to judge fairly:
 
-### Demo
+- Identities are taken from the request body (Auth is future work)  
+- Pending approvals may reset on serverless cold start; ledger events remain in Supabase  
+- SAM is localization / relevance, not forensic authentication  
+- Verification is sized for a demo ledger, not a large paginated history  
+- Concurrent writes rely on unique `chain_position`; there is no retry loop yet  
 
-1. `fake-invoice.png` → **MOCK DEMO** reject (simulated rule)  
-2. https machinery image → **LIVE SAM 3.1** category relevance  
-3. Manager approve → chained event  
-4. `/shield` → Chain verified · map · Muse Spark **LIVE** + `generated_at`  
-5. Optional: Supabase UPDATE error screenshot  
+## Suggested demo path
 
-Script: [`docs/demo-script.md`](./docs/demo-script.md)
+1. Real motor image URL → LIVE SAM category relevance  
+2. Manager approve → new chained event  
+3. (Optional) `fake-invoice.png` → MOCK DEMO reject  
+4. `/shield` → Chain verified · map · Muse LIVE  
+5. Optional: `PUT /api/events` → 405  
 
-### How to Run
+Teleprompter: [`docs/demo-script.md`](./docs/demo-script.md)  
+Storyboard screenshots: [`docs/demo-frames/`](./docs/demo-frames/)
+
+## Run locally
 
 ```bash
 git clone https://github.com/almona02/shield-os-hackathon
@@ -84,6 +94,8 @@ cp .env.example .env.local   # META_API_KEY + Supabase
 npm install && npm run dev
 ```
 
-### License
+## License
 
 MIT — see [LICENSE](./LICENSE).
+
+Thank you for your time and consideration.

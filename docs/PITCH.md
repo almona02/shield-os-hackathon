@@ -1,10 +1,10 @@
-# SHIELD.OS — Hackathon Pitch
+# SHIELD.OS — Cerebral Valley / Meta Hackathon Pitch
 
-**PROJECT TITLE:**  
+**PROJECT TITLE**  
 SHIELD.OS — Tamper-Evident Approvals with Meta-Powered Risk Intelligence
 
-**ONE-LINER:**  
-A lightweight, hash-chained audit layer extracted from our Vertical Reality OS — tamper-evident workshop approvals with Meta-powered risk signals for human review.
+**ONE-LINER**  
+A small hash-chained audit layer for workshop spare-part approvals, with Meta model risk signals meant for human review.
 
 ---
 
@@ -12,51 +12,50 @@ A lightweight, hash-chained audit layer extracted from our Vertical Reality OS �
 
 ### Background
 
-Almona Co. has served aluminium workshops in Egypt since 1991 as an authorized YILMAZ dealer. With that market access, we built Almona Vertical Reality OS to connect machinery discovery, workshop layout, Fabricator Pro (BOM, cutting optimization), and machine service history.
+Almona Co. has served aluminium workshops in Egypt since 1991 as an authorized YILMAZ dealer. We are building Almona Vertical Reality OS to connect machinery discovery, workshop layout, Fabricator Pro (BOM and cutting), and machine service history.
 
-Fabricator Pro is complete from an engineering perspective (**1,539 commits**) and includes deterministic BOM and AICS governance, but it is still new and in pilot phase — not yet deployed to production workshops.
+Fabricator Pro is far along in engineering (about 1,539 commits) and includes deterministic BOM and governance work, but it is still in pilot — not yet rolled out to production workshops.
 
-For the hackathon, we focused on one technical question: can its governance core be isolated and reused as a general integrity layer?
+For this hackathon we asked a simple question: can we isolate the governance core and show it as a clear, inspectable integrity layer?
 
 ### What we built
 
 SHIELD.OS extracts three modules:
 
-1. **immutable-log.ts** — append-only ledger with `prev_hash` / `event_hash`. Postgres trigger blocks UPDATE/DELETE. API returns **405** for non-INSERT. Production uses Supabase.
+1. **immutable-log** — append-only ledger with `prev_hash` / `event_hash`. A Postgres trigger blocks UPDATE and DELETE. The API returns 405 for non-INSERT writes. The live demo uses Supabase.
+2. **approval-chain** — ordered steps, no self-approval, distinct approvers.
+3. **anomaly-engine** — flags patterns such as same-approver bursts, off-hours activity, and geo mismatch as evidence for review (not silent blocks).
 
-2. **approval-chain.ts** — no self-approval, distinct approvers, frozen transitions.
+### How we use Meta AI
 
-3. **anomaly-engine.ts** — flags same-approver bursts, off-hours, geo mismatch, impossible travel (evidence-only).
+- **Muse Spark 1.3** reviews recent events and returns a bilingual risk summary. The UI shows a LIVE badge when the Meta API responds, or a clear fallback label when it does not. The score is a signal for human review, not a fraud probability.
+- **SAM 3.1** performs object localization on an image URL and scores category relevance to the requested part (for example, electric motor). It does not prove that a photo is authentic or unedited. A separate filename demo rule rejects `fake-invoice.png` and is labeled MOCK DEMO — not SAM.
 
-### Meta AI usage
+### Demo walkthrough
 
-- **Muse Spark 1.3** (`lib/llama.ts`) scores last 50 events (0–100, EN/AR). Badge shows LIVE or labeled fallback. Score = signal for human review, not fraud probability.
-- **SAM 3.1** (`lib/sam.ts`) does category object localization on https URLs (relevance to requested part). Filename `fake-invoice.png` is an explicit **MOCK DEMO** rule — not SAM.
-- **Muse Code** used for core extraction — visible in git history.
+A technician requests Motor YLM-45 with location and evidence. Live SAM reports category relevance on a real image. A manager approves. The event is hash-chained. The dashboard shows chain verification, a simple map, and Muse Spark risk signals for human review.
 
-### Demo
+### Why this matters to us
 
-Technician requests Motor YLM-45 with geo + evidence. Mock rule rejects `fake-invoice.png`. Live SAM scores category relevance on a real image URL (mismatch if objects ≠ motor). Manager approves. PUT is blocked. `/shield` shows verified chain, map, and Muse Spark LIVE risk signals.
+We are not claiming a finished fraud-prevention product. We are showing a careful prototype: who / where / when / what / approved by, with Meta-powered signals that a person can review. Next step for us is a Giza pilot with Fabricator Pro and SHIELD.
 
-### Why it matters
+### Honest limits of this prototype
 
-Rather than claiming production fraud prevention or authenticated governance, we show a technical validation: tamper-evident Who/Where/When/Approved-By with Meta-powered risk intelligence for human review. Next: Giza pilot with Fabricator Pro + SHIELD.
-
-### Prototype limitations
-
-- Identity: `createdBy` / `approver` from request body (no Auth yet)  
-- Approvals: in-memory Map (ledger remains durable in Supabase)  
-- SAM: localization / category relevance — not forensic authentication  
-- Ledger verify: demo-scale single query  
+- Identities (`createdBy` / `approver`) come from the request body; authentication is future work.
+- Pending approvals may still rely on in-memory state on cold starts; the event ledger itself is stored in Supabase.
+- SAM is localization and category relevance, not forensic authentication.
+- Chain verification is suitable for demo scale, not yet a fully paginated large-ledger verifier.
 
 ### Links
 
 | | |
 |---|---|
-| Live | https://shield-os-hackathon.vercel.app |
+| Live app | https://shield-os-hackathon.vercel.app |
 | Dashboard | https://shield-os-hackathon.vercel.app/shield |
 | GitHub | https://github.com/almona02/shield-os-hackathon |
 | Reality OS | https://github.com/almona02/almona-portfolio-forge |
-| Video | *(paste Loom)* |
+| Demo video | *(paste Loom URL)* |
 
-**Tech:** Next.js 14, Supabase, Meta Model API (Muse Spark 1.3 + SAM 3.1), Tailwind with RTL support.
+**Stack:** Next.js 14, Supabase, Meta Model API (Muse Spark 1.3 + SAM 3.1), Tailwind with Arabic RTL support.
+
+Thank you for reviewing our submission.
