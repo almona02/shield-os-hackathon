@@ -17,7 +17,7 @@ export function TechnicianPanel({
   const [partName, setPartName] = useState<string>(DEMO_PARTS[0]);
   const [workshopId, setWorkshopId] = useState<string>(WORKSHOPS[0].id);
   const [photoName, setPhotoName] = useState(
-    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=960&q=70&auto=format&fit=crop",
+    "",
   );
   const [geo, setGeo] = useState<{ lat: number; lon: number } | null>(
     WORKSHOPS[0],
@@ -25,7 +25,7 @@ export function TechnicianPanel({
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [evidence, setEvidence] = useState<{
-    score: number;
+    score: number | null;
     label: string;
     reason_en: string;
     reason_ar: string;
@@ -86,7 +86,7 @@ export function TechnicianPanel({
       setMsg(
         locale === "ar"
           ? "تم تسجيل الطلب في الدفتر غير القابل للتغيير"
-          : "Request sealed into the immutable ledger",
+          : "Request recorded in the tamper-evident ledger",
       );
       onSubmitted();
     } catch {
@@ -142,12 +142,12 @@ export function TechnicianPanel({
             className="rounded-xl border border-stone-200 px-3 py-2 text-sm font-normal"
             value={photoName}
             onChange={(e) => setPhotoName(e.target.value)}
-            placeholder="motor-ylm-45.jpg or fake-invoice.png"
+            placeholder="Image data URL, images.unsplash.com URL, or demo filename"
           />
           <span className="font-normal text-[11px] text-shield-steel/70">
             {locale === "ar"
               ? "اسم يحتوي fake للرفض السريع، أو رابط/data-URL لصورة حقيقية عبر SAM 3.1"
-              : "Use “fake” in the name for a quick reject, or paste an https/data image URL for live SAM 3.1"}
+              : "Use “fake” in the name for a quick reject, or paste an images.unsplash.com URL or PNG/JPEG/WebP data URL for SAM category detection"}
           </span>
         </label>
 
@@ -178,15 +178,15 @@ export function TechnicianPanel({
         {evidence && (
           <div
             className={`rounded-xl px-3 py-2 text-xs ${
-              evidence.label === "real"
+              ["matched", "simulated_match"].includes(evidence.label)
                 ? "bg-green-50 text-green-800"
-                : evidence.label === "fake"
+                : ["no_match", "simulated_reject"].includes(evidence.label)
                   ? "bg-red-50 text-red-800"
                   : "bg-amber-50 text-amber-900"
             }`}
           >
-            SAM 3.1 · {evidence.source ?? "mock"} · {evidence.label} · score{" "}
-            {evidence.score}
+            Evidence · {evidence.source ?? "unavailable"} · {evidence.label}
+            {evidence.score !== null ? ` · detection confidence ${evidence.score}/100` : ""}
             {typeof evidence.detections === "number"
               ? ` · detections ${evidence.detections}`
               : ""}

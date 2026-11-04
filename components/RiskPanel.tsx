@@ -1,7 +1,6 @@
 "use client";
 
 import type { Locale } from "@/lib/i18n";
-import { copy } from "@/lib/i18n";
 
 export interface RiskData {
   risk_score: number;
@@ -14,6 +13,8 @@ export interface RiskData {
   summary_en: string;
   summary_ar: string;
   source: string;
+  model?: string;
+  fallback_reason?: string;
 }
 
 export function RiskPanel({
@@ -23,7 +24,6 @@ export function RiskPanel({
   locale: Locale;
   risk: RiskData | null;
 }) {
-  const t = copy[locale];
   const score = risk?.risk_score ?? 0;
   const tone =
     score >= 70
@@ -35,8 +35,8 @@ export function RiskPanel({
   return (
     <section className={`rounded-2xl border p-4 ${tone}`}>
       <div className="mb-2 flex items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold">{t.riskPanel}</h2>
-        <span className="font-mono text-2xl font-bold">{score}</span>
+        <h2 className="text-sm font-semibold">{locale === "ar" ? "مراجعة مخاطر الموافقات" : "Approval risk review"}</h2>
+        <span className="font-mono text-2xl font-bold">{risk ? score : "—"}</span>
       </div>
       <p className="text-sm leading-snug">
         {risk
@@ -65,8 +65,13 @@ export function RiskPanel({
         </ul>
       ) : null}
       <p className="mt-2 font-mono text-[10px] opacity-70">
-        source: {risk?.source ?? "—"}
+        {risk?.source === "meta_llama" ? "LIVE META MODEL" : risk ? "LOCAL RULES — NOT MODEL OUTPUT" : "WAITING"}
+        {risk?.model ? ` · ${risk.model}` : ""}
+        {risk?.fallback_reason ? ` · ${risk.fallback_reason}` : ""}
       </p>
+      <p className="mt-2 text-xs">{locale === "ar"
+        ? "تنبيه للمراجعة البشرية، وليس إثباتاً للاحتيال أو نسبة لاحتماله."
+        : "Review signal, not proof or probability of fraud."}</p>
     </section>
   );
 }

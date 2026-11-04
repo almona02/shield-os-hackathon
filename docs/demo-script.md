@@ -1,83 +1,18 @@
-# SHIELD.OS — 90s Demo Video (25% of score)
+# SHIELD.OS — 90-second demo
 
-**Live URL:** https://shield-os-hackathon.vercel.app  
-**Dashboard:** https://shield-os-hackathon.vercel.app/shield
+Record only behavior verified in the exact deployed version. If you edit out waiting time, label the cut. Use synthetic requests and a photo you have permission to submit. Do not present local rules or filename fixtures as live AI.
 
-## Who should do what (most accurate)
-
-| Role | Person / tool | Job |
+| Time | Show | Narration |
 |---|---|---|
-| **Driver** | Cursor agent (me) or a teammate | Clicks the UI + runs the curl. Never misses a beat. |
-| **Narrator** | You | Read the lines below. Face optional. |
-| **Recorder** | Loom (or OBS) | Capture browser window only, 1080p, mic on. |
+| 0–15s | Request form, expected part and photo | “A workshop manager receives a spare-part request. What does the evidence show, who approves it, and can we later check the recorded history? SHIELD.OS brings those steps together.” |
+| 15–35s | A real requested-part image; returned source, prompt, detections | “SAM searches for the requested object category. Here is its actual result. It does not certify the part or invoice; it gives the reviewer evidence to consider.” |
+| 35–50s | A second real image without that category, only if it actually returns no_match | “When the category is not detected, this demo asks for review or another image. A mismatch is not an accusation of fraud.” |
+| 50–65s | Simulated Manager decides on accepted request; event appears | “The human decision creates another hash-linked event. These roles are simulated for the hackathon.” |
+| 65–80s | Dashboard, source/model label, EN/AR toggle | If source is meta_llama: “This Meta model explains possible anomalies in English and Arabic.” If local_heuristic: “The model is unavailable; the dashboard openly shows local rules and the fallback reason.” |
+| 80–90s | Timeline and closing view | “We isolated this workflow from ALMONA Reality OS. The next step is authenticated, persistent approvals and a measured workshop pilot.” |
 
-You do **not** need to click. Start Loom → say “go” → I drive → you speak.
+If a real image test fails, fix or disclose it. Do not substitute `fake-invoice.png` and narrate a real SAM rejection. That filename is a simulation and can be shown separately with that label.
 
-Alternatives if you want zero involvement:
-- Teammate records while you send this doc
-- Hire a Loom editor on Upwork with this exact click list ($20–40)
-- I can rehearse the flow in-browser anytime; you only hit Record
+A PUT rejection is evidence of an API restriction only. Do not run the former privileged live tamper endpoint. Database trigger verification belongs in a disposable test database using a rolled-back transaction.
 
----
-
-## Click-by-click teleprompter
-
-Open https://shield-os-hackathon.vercel.app in a **narrow** window (mobile-first).
-
-### 0–20s — Problem (SAM rejects fake)
-
-**Driver**
-1. Role = **Technician**
-2. Evidence photo → replace with `fake-invoice.png`
-3. Click **Submit request**
-4. Hold on the red SAM banner (`source: mock`, score ~18)
-
-**You say**
-> MENA loses roughly two trillion dollars to procurement fraud.  
-> Without Shield, a manager edits the spreadsheet and the trail is gone.  
-> SAM rejects this fake invoice — score eighteen. Evidence never enters the ledger.
-
-### 20–50s — Immutable core (live SAM 3.1 + approve + 405)
-
-**Driver**
-1. Part = **Motor YLM-45 GENESIS**, Workshop = **Giza - Almona**
-2. Evidence = Unsplash URL (prefilled) → **Submit request**
-3. Hold banner: `source: sam_3_1` · real
-4. Switch role → **Manager** → **Approve**
-5. Feed bubble shows Mohamed → Ahmed.Manager
-6. Terminal: `curl -X PUT https://shield-os-hackathon.vercel.app/api/events` → **405**
-
-**You say**
-> With Shield every action is hash-chained. Live SAM 3.1 accepts the real workshop photo.  
-> Try to edit — the API returns 405. The Postgres trigger blocks UPDATE and DELETE.
-
-### 50–90s — Impact
-
-**Driver**
-1. Open **Shield Dashboard** `/shield`
-2. Confirm pill: **Chain verified**
-3. Map shows Giza pin · Llama Risk Panel: OFF_HOURS / same-approver
-4. Optional: toggle **العربية**
-
-**You say**
-> Chain verified. Llama flags off-hours approvals — high risk, English and Arabic.  
-> This is extracted from Almona Vertical Reality OS — fifteen hundred commits,  
-> two hundred workshops in Egypt — now generalized for any industry.  
-> SHIELD.OS: who, where, when, what, approved by — immutable.
-
-End Loom. Paste link into README under **Video**.
-
----
-
-## Cutaways (optional, 2–3s each)
-
-- `supabase/migrations/001_shield_events.sql` — `trg_shield_no_update`
-- `lib/shield-core/immutable-log.ts` — `recordEvent` only
-- GitHub: https://github.com/almona02/shield-os-hackathon
-
-## Submission checklist
-
-- [ ] Loom URL in README
-- [ ] Demo URL: https://shield-os-hackathon.vercel.app
-- [ ] Repo: https://github.com/almona02/shield-os-hackathon
-- [ ] `META_API_KEY` set on Vercel (Llama panel shows `source: meta_llama`)
+Before recording: verify the deployment includes this branch, ensure an actual model result is available, select a photo of the requested category, and complete a rehearsal in one session (pending approvals are still memory-backed).

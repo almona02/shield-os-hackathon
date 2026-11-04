@@ -261,17 +261,19 @@ export class ImmutableLog {
     const rows = [...(await this.store.list(Number.MAX_SAFE_INTEGER))].sort(
       (a, b) => a.chain_position - b.chain_position,
     );
-    if (rows.length === 0) return true;
+    if (rows.length === 0) throw new ChainIntegrityError("Genesis missing: empty ledger.");
 
     const [first, ...rest] = rows;
-    if (first.prev_hash !== null) {
+    if (first.prev_hash !== null || first.event_hash !== GENESIS_HASH || first.chain_position !== 1 || first.entity_id !== "shield_genesis" || first.vertical_id !== "shield_core") {
       throw new ChainIntegrityError(
         `First event (position ${first.chain_position}) must be genesis.`,
       );
     }
 
     let previousHash = first.event_hash;
+    let previousPosition = 1;
     for (const current of rest) {
+      if (current.chain_position !== previousPosition + 1) throw new ChainIntegrityError("Non-contiguous chain positions.");
       if (current.prev_hash !== previousHash) {
         throw new ChainIntegrityError(
           `Chain broken at position ${current.chain_position}. ` +
@@ -315,6 +317,7 @@ export class ImmutableLog {
         }
       }
       previousHash = current.event_hash;
+      previousPosition = current.chain_position;
     }
     return true;
   }

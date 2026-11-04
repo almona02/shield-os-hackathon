@@ -1,310 +1,109 @@
-/**
- * SAM 3.1 evidence verification via Meta Model API.
- * Docs: https://dev.meta.ai/docs/sam/overview
- *
- * POST https://api.meta.ai/v1/responses  model: sam-3.1
- * Prompt = expected spare-part noun phrase + image URL / data URL.
- * Zero matches → fake/suspicious. Detections → real (confidence-weighted).
- *
- * Falls back to filename heuristics when META_API_KEY is missing or the
- * photo is a demo filename (not a real image URL).
- */
+/** SAM detects prompted object categories; it does not authenticate invoices or SKUs. */
+import { createHash } from "node:crypto";
 
 export interface EvidenceVerdict {
-  score: number; // 0–100 realness
-  label: "real" | "suspicious" | "fake";
+  score: number | null; // Model detection confidence, never authenticity probability.
+  label: "matched" | "no_match" | "unavailable" | "simulated_match" | "simulated_reject";
   reason_en: string;
   reason_ar: string;
-  photo_hash: string;
-  source: "sam_3_1" | "mock";
+  photo_hash: string; // Hash of submitted reference, NOT downloaded image bytes.
+  source: "sam_3_1" | "mock" | "unavailable";
   detections?: number;
+  matched_prompt?: string;
 }
-
-const META_RESPONSES_URL =
-  process.env.META_SAM_URL ?? "https://api.meta.ai/v1/responses";
-const SAM_MODEL = process.env.META_SAM_MODEL ?? "sam-3.1";
-
-function hashString(input: string): string {
-  let h = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    h = (Math.imul(31, h) + input.charCodeAt(i)) | 0;
-  }
-  return `ph_${Math.abs(h).toString(16).padStart(8, "0")}`;
-}
-
-function labelFromScore(score: number): EvidenceVerdict["label"] {
-  if (score >= 70) return "real";
-  if (score >= 40) return "suspicious";
-  return "fake";
-}
-
-function reasons(
-  label: EvidenceVerdict["label"],
-  expectedPart?: string,
-): Pick<EvidenceVerdict, "reason_en" | "reason_ar"> {
-  if (label === "real") {
-    return {
-      reason_en: `SAM 3.1 found a physical spare part${expectedPart ? ` matching “${expectedPart}”` : ""}.`,
-      reason_ar: `SAM 3.1 رصد قطعة غيار حقيقية${expectedPart ? ` تطابق “${expectedPart}”` : ""}.`,
-    };
-  }
-  if (label === "suspicious") {
-    return {
-      reason_en: "Ambiguous evidence — recommend on-site re-capture.",
-      reason_ar: "دليل غير واضح — يُفضّل إعادة التصوير في الموقع.",
-    };
-  }
+const referenceHash = (photo: string) => createHash("sha256").update(photo).digest("hex");
+const unavailable = (photo: string): EvidenceVerdict => ({
+  score: null, label: "unavailable", source: "unavailable", photo_hash: referenceHash(photo),
+  reason_en: "Visual analysis unavailable. No authenticity conclusion; retry or review manually.",
+  reason_ar: "التحليل البصري غير متاح. لا يوجد حكم على الأصالة؛ أعد المحاولة أو راجع يدوياً.",
+});
+export function mockVerifyEvidence(photo: string): EvidenceVerdict {
+  const rejected = /fake|invoice|edited|screenshot/i.test(photo);
   return {
-    reason_en:
-      "Likely fake / edited / non-part image. Block approval until re-verified.",
-    reason_ar:
-      "يُحتمل أن تكون الصورة مزيفة أو معدّلة. امنع الموافقة حتى إعادة التحقق.",
+    score: null, label: rejected ? "simulated_reject" : "simulated_match",
+    source: "mock", photo_hash: referenceHash(photo),
+    reason_en: "Filename simulation only. No image was analyzed and no Meta API was called.",
+    reason_ar: "محاكاة باسم الملف فقط. لم تُحلل صورة ولم يُستدعَ نموذج Meta.",
   };
 }
-
-/** Demo-friendly mock when there is no real image bytes to send SAM. */
-export function mockVerifyEvidence(
-  photo: string,
-  expectedPart?: string,
-): EvidenceVerdict {
-  const lower = photo.toLowerCase();
-  const photo_hash = hashString(photo.slice(0, 256) + (expectedPart ?? ""));
-
-  let score = 78;
-  if (
-    /fake|screenshot|invoice|edited|photoshop|stock/.test(lower) ||
-    lower.includes("data:image/gif")
-  ) {
-    score = 18;
-  } else if (/motor|bearing|yilmaz|ylm|part|workshop/.test(lower)) {
-    score = 92;
-  } else if (photo.startsWith("data:image/")) {
-    score = 71;
-  }
-
-  if (expectedPart && lower.includes(expectedPart.toLowerCase().slice(0, 4))) {
-    score = Math.min(100, score + 8);
-  }
-
-  const label = labelFromScore(score);
-  return {
-    score,
-    label,
-    ...reasons(label, expectedPart),
-    photo_hash,
-    source: "mock",
-  };
-}
-
-function isImagePayload(photo: string): boolean {
-  return (
-    photo.startsWith("http://") ||
-    photo.startsWith("https://") ||
-    photo.startsWith("data:image/")
-  );
-}
-
-/** Cascading noun phrases — SAM wants short concrete nouns. */
-function samPrompts(expectedPart?: string): string[] {
+export function samPrompts(expectedPart?: string): string[] {
   const p = (expectedPart ?? "").toLowerCase();
-  const primary: string[] = [];
-  if (/motor|ylm/.test(p)) primary.push("electric motor", "motor");
-  else if (/bearing/.test(p)) primary.push("bearing", "machine bearing");
-  else if (/spindle/.test(p)) primary.push("spindle");
-  else if (/seal/.test(p)) primary.push("seal");
-  else if (expectedPart) primary.push(expectedPart);
-  // Broad fallbacks so real workshop photos still verify for the demo.
-  return [
-    ...primary,
-    "machine",
-    "equipment",
-    "industrial equipment",
-    "person",
-  ];
+  if (/motor|ylm/.test(p)) return ["electric motor", "motor"];
+  if (/bearing/.test(p)) return ["bearing", "machine bearing"];
+  if (/spindle/.test(p)) return ["spindle"];
+  if (/seal/.test(p)) return ["seal"];
+  return expectedPart?.trim() ? [expectedPart.trim()] : [];
 }
-
-function countSamDetections(outputText: string): number {
-  if (!outputText.trim()) return 0;
-  const boxes = outputText.match(/<\|box;/g);
-  return boxes?.length ?? 0;
+export function parseSamOutput(text: string) {
+  const detections = (text.match(/<\|box;/g) ?? []).length;
+  const confidence = [...text.matchAll(/;c=([0-9.]+)/g)]
+    .map(m => Number(m[1])).filter(n => Number.isFinite(n) && n >= 0 && n <= 1);
+  return { detections, score: confidence.length
+    ? Math.round(100 * confidence.reduce((a, b) => a + b, 0) / confidence.length) : null };
 }
-
-function avgConfidence(outputText: string): number | null {
-  const hits = [...outputText.matchAll(/;c=([0-9.]+)/g)].map((m) =>
-    Number(m[1]),
-  );
-  if (hits.length === 0) return null;
-  return hits.reduce((a, b) => a + b, 0) / hits.length;
-}
-
-/** Shrink common CDNs so Meta's image decode limit is not exceeded. */
-function compactImageUrl(url: string): string {
+/** Avoid an arbitrary server-side URL fetch. Only a known public CDN is proxied. */
+async function imagePayload(photo: string): Promise<string | null> {
+  if (/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(photo)) {
+    return photo.length <= 2_500_000 ? photo : null;
+  }
   try {
-    const u = new URL(url);
-    if (u.hostname.includes("unsplash.com") || u.hostname.includes("images.unsplash.com")) {
-      u.searchParams.set("w", "960");
-      u.searchParams.set("q", "70");
-      u.searchParams.set("auto", "format");
-      u.searchParams.set("fit", "crop");
-      return u.toString();
+    const url = new URL(photo);
+    if (url.protocol !== "https:" || url.hostname !== "images.unsplash.com" || url.port || url.username || url.password) return null;
+    url.searchParams.set("w", "960"); url.searchParams.set("q", "70");
+    const res = await fetch(url, { redirect: "error", signal: AbortSignal.timeout(8000) });
+    const mime = (res.headers.get("content-type") ?? "").split(";")[0];
+    if (!res.ok || !["image/jpeg", "image/png", "image/webp"].includes(mime) || !res.body) return null;
+    const reader = res.body.getReader();
+    const chunks: Uint8Array[] = []; let size = 0;
+    while (true) {
+      const { done, value } = await reader.read(); if (done) break;
+      size += value.length;
+      if (size > 1_800_000) { await reader.cancel(); return null; }
+      chunks.push(value);
     }
-  } catch {
-    /* keep original */
-  }
-  return url;
+    return `data:${mime};base64,${Buffer.concat(chunks).toString("base64")}`;
+  } catch { return null; }
 }
-
-/**
- * Meta's fetchers often block hotlink CDNs (Unsplash etc).
- * Download here and inline as a data URL so SAM 3.1 can read the bytes.
- */
-async function resolveImageForSam(photo: string): Promise<string | null> {
-  if (photo.startsWith("data:image/")) {
-    // Reject oversized inlined payloads early.
-    if (photo.length > 2_500_000) return null;
-    return photo;
-  }
-  if (!photo.startsWith("http://") && !photo.startsWith("https://")) {
-    return null;
-  }
-  try {
-    const res = await fetch(compactImageUrl(photo), {
-      headers: { "User-Agent": "SHIELD.OS/1.0 (Meta Hackathon)" },
-      redirect: "follow",
-    });
-    if (!res.ok) return null;
-    const ctype = res.headers.get("content-type") ?? "image/jpeg";
-    if (!ctype.startsWith("image/")) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
-    // Meta decode limit — keep well under.
-    if (buf.length > 1_800_000) return null;
-    return `data:${ctype};base64,${buf.toString("base64")}`;
-  } catch (err) {
-    console.warn("[sam] image proxy failed", err);
-    return null;
-  }
-}
-
-/**
- * Call Meta SAM 3.1. Returns null if the key is missing or the call fails
- * so the caller can fall back to the mock.
- */
-export async function verifyEvidenceWithSam(
-  photoUrl: string,
-  expectedPart?: string,
-): Promise<EvidenceVerdict | null> {
-  const apiKey =
-    process.env.META_API_KEY?.trim() ||
-    process.env.MODEL_API_KEY?.trim();
-  if (!apiKey) return null;
-
-  const imageForSam = await resolveImageForSam(photoUrl);
-  if (!imageForSam) return null;
-
-  const extractOutputText = (data: {
-    output_text?: string;
-    output?: { content?: { text?: string; type?: string }[] }[];
-  }) => {
-    let outputText = data.output_text ?? "";
-    if (!outputText && Array.isArray(data.output)) {
-      for (const block of data.output) {
-        for (const part of block.content ?? []) {
-          if (part.text) outputText += part.text;
-        }
-      }
-    }
-    return outputText;
-  };
-
-  try {
-    let best = { detections: 0, conf: null as number | null, prompt: "", text: "" };
-
-    for (const prompt of samPrompts(expectedPart)) {
-      const res = await fetch(META_RESPONSES_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: SAM_MODEL,
-          input: [
-            {
-              type: "message",
-              role: "user",
-              content: [
-                { type: "input_text", text: prompt },
-                { type: "input_image", image_url: imageForSam },
-              ],
-            },
-          ],
-          stream: false,
-          metadata: {
-            mask_encoding: "one_bit",
-            include_confidence: "true",
-          },
-        }),
+export async function verifyEvidenceWithSam(photo: string, expectedPart?: string): Promise<EvidenceVerdict | null> {
+  const key = process.env.META_API_KEY?.trim() || process.env.MODEL_API_KEY?.trim();
+  if (!key) return null;
+  const prompts = samPrompts(expectedPart);
+  const image = await imagePayload(photo);
+  if (!image || !prompts.length) return null;
+  let completed = false;
+  for (const prompt of prompts) {
+    try {
+      const res = await fetch(process.env.META_SAM_URL ?? "https://api.meta.ai/v1/responses", {
+        method: "POST", signal: AbortSignal.timeout(12000),
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: process.env.META_SAM_MODEL ?? "sam-3.1", stream: false,
+          input: [{ type: "message", role: "user", content: [
+            { type: "input_text", text: prompt }, { type: "input_image", image_url: image },
+          ] }], metadata: { mask_encoding: "one_bit", include_confidence: "true" } }),
       });
-
-      if (!res.ok) {
-        console.warn("[sam] Meta API error", res.status, await res.text());
-        continue;
-      }
-
-      const data = (await res.json()) as {
-        output_text?: string;
-        output?: { content?: { text?: string; type?: string }[] }[];
+      if (!res.ok) { console.warn("[sam] HTTP", res.status); continue; }
+      const data = await res.json();
+      if (data.error || (data.status && data.status !== "completed")) continue;
+      if (typeof data.output_text !== "string" && !Array.isArray(data.output)) continue;
+      const output = data.output_text ?? data.output?.flatMap((b: { content?: { text?: string }[] }) => b.content ?? []).map((p: { text?: string }) => p.text ?? "").join("") ?? "";
+      // Unknown non-empty output must not be treated as a successful negative result.
+      if (output.trim() && !output.includes("<0f>")) continue;
+      completed = true;
+      const parsed = parseSamOutput(output);
+      if (parsed.detections) return {
+        ...parsed, label: "matched", source: "sam_3_1", photo_hash: referenceHash(photo), matched_prompt: prompt,
+        reason_en: `Detected category “${prompt}”. This does not verify SKU, ownership, condition, or invoice authenticity.`,
+        reason_ar: `تم رصد فئة «${prompt}». لا يثبت ذلك الموديل أو الملكية أو الحالة أو أصالة الفاتورة.`,
       };
-      const outputText = extractOutputText(data);
-      const detections = countSamDetections(outputText);
-      const conf = avgConfidence(outputText);
-      if (detections > best.detections) {
-        best = { detections, conf, prompt, text: outputText };
-      }
-      // Stop early on a confident primary hit.
-      if (detections > 0 && (conf ?? 0) >= 0.7) break;
-    }
-
-    let score: number;
-    if (best.detections === 0) {
-      score = 15;
-    } else if (best.conf != null) {
-      score = Math.round(
-        Math.min(100, 55 + best.conf * 45 + Math.min(best.detections, 3) * 5),
-      );
-    } else {
-      score = Math.min(95, 70 + best.detections * 8);
-    }
-
-    const label = labelFromScore(score);
-    const photo_hash = hashString(
-      `${photoUrl.slice(0, 128)}|${best.prompt}|${best.detections}|${best.text.slice(0, 64)}`,
-    );
-
-    return {
-      score,
-      label,
-      ...reasons(label, expectedPart),
-      photo_hash,
-      source: "sam_3_1",
-      detections: best.detections,
-    };
-  } catch (err) {
-    console.warn("[sam] call failed", err);
-    return null;
+    } catch { /* A provider failure is unavailable, never a fabricated verdict. */ }
   }
+  return completed ? {
+    score: null, detections: 0, label: "no_match", source: "sam_3_1", photo_hash: referenceHash(photo),
+    reason_en: "Requested object category not detected. Review the image; this is not proof of fraud.",
+    reason_ar: "لم تُرصد فئة القطعة المطلوبة. راجع الصورة؛ هذه ليست دليلاً على الاحتيال.",
+  } : null;
 }
-
-/**
- * Primary entry: real SAM 3.1 when possible, otherwise mock.
- */
-export async function verifyEvidence(
-  photo: string,
-  expectedPart?: string,
-): Promise<EvidenceVerdict> {
-  if (isImagePayload(photo)) {
-    const live = await verifyEvidenceWithSam(photo, expectedPart);
-    if (live) return live;
-  }
-  return mockVerifyEvidence(photo, expectedPart);
+export async function verifyEvidence(photo: string, expectedPart?: string): Promise<EvidenceVerdict> {
+  if (/^(https?:|data:)/i.test(photo)) return await verifyEvidenceWithSam(photo, expectedPart) ?? unavailable(photo);
+  return mockVerifyEvidence(photo);
 }

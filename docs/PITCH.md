@@ -1,55 +1,31 @@
-# SHIELD.OS — Hackathon Pitch
+# SHIELD.OS — submission draft
 
-**PROJECT TITLE:**  
-SHIELD.OS — Immutable Audit Layer Extracted from Reality OS
+## One sentence
 
-**ONE-LINER:**  
-A lightweight, hash-chained audit layer extracted from our Vertical Reality OS — designed to make workshop approvals tamper-evident.
+SHIELD.OS helps workshop managers review spare-part evidence and preserve a tamper-evident history of their approval decisions, with Meta-powered visual category detection and bilingual anomaly explanations.
 
----
+## Problem
 
-## FULL DESCRIPTION
+A spare-part request can arrive with a photo and a short message. A manager needs to know what the evidence shows, who made the decision, and whether the recorded history later changed. A spreadsheet alone makes that review difficult.
 
-### Background
+## What we built
 
-Almona Co. has served aluminium workshops in Egypt since 1991 as an authorized YILMAZ dealer. With that market access, we built Almona Vertical Reality OS to connect machinery discovery, workshop layout, Fabricator Pro (BOM, cutting optimization), and machine service history.
+We extracted a small governance prototype from ALMONA's larger Reality OS work and built a standalone spare-parts demonstration. A technician submits a request. SAM 3.1 searches the photo for the expected object category. A manager makes an explicit decision, and the application appends a hash-linked event. A dashboard shows the history, supplied locations, and English/Arabic risk explanations.
 
-Fabricator Pro is complete from an engineering perspective (**1,539 commits**) and includes deterministic BOM and AICS governance, but it is still new and in pilot phase — not yet deployed to production workshops.
+The model advises; deterministic rules implement the approval transitions. Model results and local-rule fallbacks are labeled separately. A motor-category detection is useful evidence for review, but does not prove an exact SKU or an authentic invoice.
 
-For the hackathon, we focused on one technical question: can its governance core be isolated and reused as a general anti-corruption layer?
+## What is demonstrated versus planned
 
-### What we built
+The repository includes a working UI, event hashing, approval rules, a Supabase adapter/migration, and Meta API clients. The submission video must show which providers actually succeeded in the deployed environment. Filename fixtures are explicitly simulated. No production adoption, measured fraud reduction, or accuracy percentage is claimed.
 
-SHIELD.OS extracts three modules:
+Before a real workshop pilot we need authenticated roles, persistent transactional approvals, restricted database policies, concurrency protection, and a labeled photo evaluation. This prototype is intended to test that focused workflow, not claim those requirements are already complete.
 
-1. **immutable-log.ts** — append-only ledger where each event stores `prev_hash` and `event_hash`. Enforced by Postgres RLS (deny UPDATE/DELETE) and a trigger that raises on tampering. API returns **405** for non-INSERT methods. **Production runs on Supabase** (`supabase/migrations/001_shield_events.sql`).
+## Why this team
 
-2. **approval-chain.ts** — no self-approval, distinct approvers, frozen transitions.
+ALMONA's industrial machinery and workshop experience provides the domain context for the problem. Add one personally verified example of the existing procurement workflow when narrating; do not invent losses, customer adoption, or test results.
 
-3. **anomaly-engine.ts** — flags same-approver rapid approvals, off-hours, geo mismatch, impossible travel.
+## Links
 
-### Meta AI usage
-
-- **Llama 4 Maverick** (`lib/llama.ts`) scores last 50 events for risk (0–100) with bilingual EN/AR explanation. Heuristic fallback for offline demo.
-- **SAM 3.1** (`lib/sam.ts`) verifies evidence photos via Meta Responses API (`sam-3.1`). Images are proxied/resized server-side. Filename mock remains for fast Loom beats (`fake-invoice.png` → score 18).
-- **Muse Code** was used for the core extraction — visible in git history.
-
-### Demo
-
-Technician requests Motor YLM-45 GENESIS with geo + evidence. Submitting `fake-invoice.png` is rejected. Pasting a real image URL hits live SAM 3.1. Manager approves. Any attempt to edit via PUT is blocked. `/shield` shows hash chain verification, map pins, and Llama risk panel (including off-hours flags).
-
-### Why it matters
-
-Rather than claiming large-scale deployment, we are showing a technical validation: a small, auditable layer that can be embedded in any workflow where Who / Where / When / Approved By must be provable. Our next step is to pilot it alongside Fabricator Pro in Giza.
-
-### Links
-
-| | |
-|---|---|
-| Live | https://shield-os-hackathon.vercel.app |
-| Dashboard | https://shield-os-hackathon.vercel.app/shield |
-| GitHub | https://github.com/almona02/shield-os-hackathon |
-| Reality OS | https://github.com/almona02/almona-portfolio-forge |
-| Video | *(paste Loom)* |
-
-**Tech:** Next.js 14, Supabase, Meta Model API (Llama 4 + SAM 3.1), Tailwind with RTL support.
+- Demo: https://shield-os-hackathon.vercel.app
+- Repository: https://github.com/almona02/shield-os-hackathon
+- Video: add the actual completed recording to the submission form before submitting.

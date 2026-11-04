@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { analyzeRiskWithLlama, type ShieldEventLite } from "@/lib/llama";
 import { log } from "@/lib/shield";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const records = await log.getChain({ limit: 50 });
   const lite: ShieldEventLite[] = records.map((r) => ({

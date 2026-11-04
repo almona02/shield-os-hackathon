@@ -125,6 +125,9 @@ export default function HomePage() {
         </div>
       </header>
 
+      <p className="mb-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-950">
+        {locale === "ar" ? "عرض تجريبي: الأدوار محاكاة وليست هوية موثقة. استخدم بيانات تجريبية فقط؛ الطلبات المعلقة محفوظة في الذاكرة." : "Demo: roles are simulated, not authenticated identities. Use synthetic data only. Pending approvals are stored in memory."}
+      </p>
       <div className="mb-4">
         {role === "technician" ? (
           <TechnicianPanel

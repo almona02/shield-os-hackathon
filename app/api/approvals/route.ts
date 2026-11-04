@@ -31,16 +31,15 @@ export async function POST(request: Request) {
       const entityId = String(body.entityId ?? partName.replace(/\s+/g, "-").toLowerCase());
       const location = (body.location as { lat: number; lon: number } | null) ?? null;
       const photo = typeof body.photo === "string" ? body.photo : "";
-      const photoName = String(body.photoName ?? photo.slice(0, 80));
 
       const evidence = photo
-        ? await verifyEvidence(photoName || photo, partName)
+        ? await verifyEvidence(photo, partName)
         : null;
 
-      if (evidence && evidence.label === "fake") {
+      if (evidence && ["simulated_reject", "no_match", "unavailable"].includes(evidence.label)) {
         return NextResponse.json(
           {
-            error: "Evidence photo failed SAM check.",
+            error: "Evidence needs review or a retry before this demo request can proceed.",
             evidence,
           },
           { status: 400 },
@@ -55,7 +54,6 @@ export async function POST(request: Request) {
           { stepId: "manager", role: "manager", label: "Manager" },
         ],
       });
-      approvals.set(req.id, req);
 
       const record = await log.recordEvent({
         event_type: "INSPECTION",
@@ -72,11 +70,14 @@ export async function POST(request: Request) {
           approval_id: req.id,
           part_name: partName,
           workshop,
+          evidence_source: evidence?.source ?? null,
+          evidence_prompt: evidence?.matched_prompt ?? null,
           evidence_score: evidence?.score ?? null,
           evidence_label: evidence?.label ?? null,
           status: "awaiting_approval",
         },
       });
+      approvals.set(req.id, req);
       const findings = analyzeAndTrack(record);
 
       return NextResponse.json(
@@ -86,6 +87,9 @@ export async function POST(request: Request) {
     }
 
     if (body.action === "decide") {
+      if (!["approved", "rejected"].includes(String(body.decision)) || typeof body.approver !== "string" || !body.approver.trim()) {
+        return NextResponse.json({ error: "Valid decision and approver required." }, { status: 400 });
+      }
       const current = approvals.get(body.id as string);
       if (!current) {
         return NextResponse.json(
@@ -107,7 +111,6 @@ export async function POST(request: Request) {
               approver: body.approver as string,
               note: (body.note as string) ?? undefined,
             });
-      approvals.set(next.id, next);
       const step = next.steps.find(
         (s) => s.stepId === ((body.stepId as string) || "manager"),
       );
@@ -130,6 +133,7 @@ export async function POST(request: Request) {
           workshop: body.workshop ?? null,
         },
       });
+      approvals.set(next.id, next);
       const findings = analyzeAndTrack(record);
       return NextResponse.json({ request: next, record, findings });
     }
